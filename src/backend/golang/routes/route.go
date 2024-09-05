@@ -15,6 +15,10 @@ func ApiHandlers() http.Handler {
 		r.Post("/db", controllers.CreateDB)
 		r.Put("/db/{id}", controllers.UpdateDB)
 		r.Delete("/db/{id}", controllers.DeleteDB)
+
+		// Crypto ones
+		r.Post("/train", controllers.TrainModel)
+		r.Post("/predict", controllers.PredictCrypto)
 	})
 
 	return router

@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"bytes"
+	"io"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/thedevsaddam/renderer"
@@ -180,4 +182,50 @@ func DeleteDB(w http.ResponseWriter, r *http.Request) {
 		"message": "Record deleted successfully",
 		"data":    result.DeletedCount,
 	})
+}
+
+func TrainModel(w http.ResponseWriter, r *http.Request) {
+	var request models.TrainRequest
+	_ = json.NewDecoder(r.Body).Decode(&request)
+
+	jsonData, err := json.Marshal(request)
+	utils.CheckError(err)
+
+	// Sending a request to the FastAPI /train endpoint
+	resp, err := http.Post("http://localhost:8000/train", "application/json", bytes.NewBuffer(jsonData))
+	utils.CheckError(err)
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	utils.CheckError(err)
+
+	var trainResp models.TrainResponse
+	err = json.Unmarshal(body, &trainResp)
+	utils.CheckError(err)
+
+	// Respond with the result from the FastAPI train endpoint
+	json.NewEncoder(w).Encode(trainResp)
+}
+
+func PredictCrypto(w http.ResponseWriter, r *http.Request) {
+	var request models.PredictRequest
+	_ = json.NewDecoder(r.Body).Decode(&request)
+
+	jsonData, err := json.Marshal(request)
+	utils.CheckError(err)
+
+	// Sending a request to the FastAPI /predict endpoint
+	resp, err := http.Post("http://localhost:8000/predict", "application/json", bytes.NewBuffer(jsonData))
+	utils.CheckError(err)
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	utils.CheckError(err)
+
+	var predictResp models.PredictResponse
+	err = json.Unmarshal(body, &predictResp)
+	utils.CheckError(err)
+
+	// Respond with the prediction result from FastAPI
+	json.NewEncoder(w).Encode(predictResp)
 }

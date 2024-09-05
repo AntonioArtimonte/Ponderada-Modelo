@@ -30,3 +30,21 @@ type UpdateDB struct {
 	EndValue   int    `json:"endValue"`
 	Model      string `json:"model"`
 }
+
+type TrainRequest struct {
+	Crypto string `json:"crypto"`
+	StartDate string `json:"startDate"`
+	EndDate string `json:"endDate"`
+}
+
+type TrainResponse struct {
+	Message string `json:"message"`
+}
+
+type PredictRequest struct {
+	Data []float64 `json:"data"`
+}
+
+type PredictResponse struct {
+	Prediction []float64 `json:"prediction"`
+}

@@ -13,6 +13,7 @@ const TrainingButton: FC = () => {
         color="primary"
         className="bg-[#3E2723] text-white px-6 py-2 rounded-lg"
         fullWidth
+        style={{backgroundColor: '#3E2723'}}
       >
         Iniciar Treinamento
       </Button>

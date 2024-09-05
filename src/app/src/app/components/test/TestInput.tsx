@@ -40,6 +40,7 @@ const TestInput: FC<TestInputProps> = ({ onTest }) => {
         whileTap={{ scale: 0.95 }}
         className="mt-4 bg-[#3E2723] text-white px-4 py-2 rounded-lg"
         onClick={handleSubmit}
+        style={{backgroundColor: '#3E2723'}}
       >
         Testar
       </motion.button>

@@ -33,6 +33,7 @@ const Navbar: FC = () => {
         boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1), 0 10px 15px rgba(0, 0, 0, 0.1)',
         borderRadius: '15px',
         padding: '0 20px',
+        backgroundColor: '#FAF3E0',
       }}
     >
       <Toolbar className="flex justify-between">

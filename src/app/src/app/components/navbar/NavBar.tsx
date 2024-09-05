@@ -54,7 +54,6 @@ const Navbar: FC = () => {
         </Box>
       </Toolbar>
 
-      {isSearchOpen && <SearchBar toggleSearch={toggleSearch} />}
     </AppBar>
   );
 };

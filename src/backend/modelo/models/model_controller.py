@@ -37,3 +37,7 @@ class ModelController:
         predictions = self.predictor.predict_future_prices(scaled_data, steps)
 
         return predictions
+    
+    def get_trained_crypto(self):
+        print("chegou aqui")
+        return self.predictor.check_trained()

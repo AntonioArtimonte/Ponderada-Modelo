@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strings"
 	"bytes"
+	"time"
 	"io"
 
 	"github.com/go-chi/chi/v5"
@@ -35,10 +36,9 @@ func GetDB(w http.ResponseWriter, r *http.Request) {
 	for _, td := range dbListFromDB {
 		dbList = append(dbList, models.DB{
 			ID:         td.ID.Hex(),
-			Date:       td.Date,
-			StartValue: td.StartValue,
-			EndValue:   td.EndValue,
-			Model:      td.Model,
+			Crypto:     td.Crypto,
+			Predictions: td.Predictions,
+			Timestamp:  td.Timestamp,
 		})
 	}
 
@@ -60,7 +60,7 @@ func CreateDB(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if dbReq.Date == "" || dbReq.StartValue == 0 || dbReq.EndValue == 0 || dbReq.Model == "" {
+	if dbReq.Crypto == "" || len(dbReq.Predictions) == 0 || dbReq.Timestamp.IsZero() {
 		rnd.JSON(w, http.StatusBadRequest, renderer.M{
 			"message": "All fields are required",
 		})
@@ -69,10 +69,8 @@ func CreateDB(w http.ResponseWriter, r *http.Request) {
 
 	dbModel := models.DBModel{
 		ID:         primitive.NewObjectID(),
-		Date:       dbReq.Date,
-		StartValue: dbReq.StartValue,
-		EndValue:   dbReq.EndValue,
-		Model:      dbReq.Model,
+		Crypto:     dbReq.Crypto,
+		Predictions: dbReq.Predictions,
 	}
 
 	_, err := config.Db.Collection(config.CollectionName).InsertOne(r.Context(), dbModel)
@@ -111,7 +109,7 @@ func UpdateDB(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if updateReq.StartValue == 0 || updateReq.EndValue == 0 || updateReq.Model == "" {
+	if updateReq.Crypto == "" || len(updateReq.Predictions) == 0 || updateReq.Timestamp.IsZero() {
 		rnd.JSON(w, http.StatusBadRequest, renderer.M{
 			"message": "All fields are required",
 		})
@@ -120,9 +118,9 @@ func UpdateDB(w http.ResponseWriter, r *http.Request) {
 
 	filter := bson.M{"_id": objectID}
 	update := bson.M{"$set": bson.M{
-		"startValue": updateReq.StartValue,
-		"endValue":   updateReq.EndValue,
-		"model":      updateReq.Model,
+		"crypto":      updateReq.Crypto,
+		"predictions": updateReq.Predictions,
+		"timestamp":   updateReq.Timestamp,
 	}}
 
 	result, err := config.Db.Collection(config.CollectionName).UpdateOne(r.Context(), filter, update)
@@ -153,7 +151,7 @@ func DeleteDB(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		log.Printf("The id param is not a valid hex %v\n", err.Error())
+		log.Printf("The id param is not a valid hex %v\n", err)
 		rnd.JSON(w, http.StatusBadRequest, renderer.M{
 			"message": "Invalid ID",
 		})
@@ -183,6 +181,7 @@ func DeleteDB(w http.ResponseWriter, r *http.Request) {
 		"data":    result.DeletedCount,
 	})
 }
+
 
 func TrainModel(w http.ResponseWriter, r *http.Request) {
 	var request models.TrainRequest
@@ -223,18 +222,64 @@ func TrainModel(w http.ResponseWriter, r *http.Request) {
 
 
 func PredictCrypto(w http.ResponseWriter, r *http.Request) {
-	// Sending a request to the FastAPI /predict endpoint with no body
+
 	resp, err := http.Post("http://backend-model:8000/predict", "application/json", nil)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer resp.Body.Close()
+
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+
+	var predictResp models.PredictResponse
+	err = json.Unmarshal(body, &predictResp)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+
+	dbModel := models.DBModel{
+		ID:         primitive.NewObjectID(),
+		Crypto:     predictResp.Crypto,
+		Predictions: predictResp.Prediction,
+		Timestamp:  time.Now(),
+	}
+
+
+	_, err = config.Db.Collection(config.CollectionName).InsertOne(context.TODO(), dbModel)
+	if err != nil {
+		log.Printf("Error inserting prediction into MongoDB: %v\n", err)
+		http.Error(w, "Error storing prediction in the database", http.StatusInternalServerError)
+		return
+	}
+
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(predictResp)
+}
+
+
+
+func TrainedCrypto(w http.ResponseWriter, r *http.Request) {
+
+	resp, err := http.Get("http://backend-model:8000/trained")
 	utils.CheckError(err)
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	utils.CheckError(err)
 
-	var predictResp models.PredictResponse
-	err = json.Unmarshal(body, &predictResp)
+	var trainedResp models.TrainedResp
+	err = json.Unmarshal(body, &trainedResp)
 	utils.CheckError(err)
 
-	// Respond with the prediction result from FastAPI
-	json.NewEncoder(w).Encode(predictResp)
+	json.NewEncoder(w).Encode(trainedResp)
 }

@@ -21,7 +21,11 @@ class TrainResponse(BaseModel):
     message: str
 
 class PredictResponse(BaseModel):
+    crypto: str
     prediction: list
+
+class TrainedResponse(BaseModel):
+    crypto: Optional[str] = None
 
 # Endpoint to train the model on a specific cryptocurrency
 @router.post("/train", response_model=TrainResponse)
@@ -44,10 +48,21 @@ async def predict():
         # Call the controller to handle prediction (7-day prediction)
         predictions = controller.predict(steps=7)
         
+        crypto = controller.get_trained_crypto()
+        
         # Convert numpy.float32 to standard Python float
         predictions = [float(p) for p in predictions]
 
-        return PredictResponse(prediction=predictions)
+        return PredictResponse(prediction=predictions, crypto=crypto)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.get("/trained", response_model=TrainedResponse)
+async def trained():
+    try:
+        # Call the controller to get the latest trained crypto
+        crypto = controller.get_trained_crypto()
+
+        return TrainedResponse(crypto=crypto)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

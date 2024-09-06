@@ -140,3 +140,15 @@ class CryptoPredictor:
             predicted_price_scaled = np.array(predicted_price_scaled).reshape((1, 1))
             current_sequence = np.append(current_sequence, predicted_price_scaled)[-self.seq_length:]
         return future_predictions
+        
+    def check_trained(self):
+        '''
+        Check if there are any trained models and return the name of the trained cryptocurrency.
+        '''
+        trained_cryptos = self.load_trained_cryptos()
+        
+        for crypto, status in trained_cryptos.items():
+            if status["trained"] == 1:
+                return crypto  # Return the name of the trained crypto
+        
+        return None  # Return None if no crypto is trained

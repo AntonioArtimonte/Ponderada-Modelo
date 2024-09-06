@@ -19,6 +19,9 @@ func ApiHandlers() http.Handler {
 		// Crypto ones
 		r.Post("/train", controllers.TrainModel)
 		r.Post("/predict", controllers.PredictCrypto)
+
+		// Check trained crypto
+		r.Get("/trained", controllers.TrainedCrypto)
 	})
 
 	return router

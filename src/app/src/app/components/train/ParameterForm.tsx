@@ -18,16 +18,19 @@ const ParameterForm: FC = () => {
           InputLabelProps={{ shrink: true }}
           className="mb-4"
         />
+
         <TextField
-          label="Parâmetro X"
-          type="number"
+          label="Criptomoeda"
+          type="text"
           fullWidth
+          InputLabelProps={{ shrink: true }}
           className="mb-4"
         />
         <TextField
-          label="Parâmetro Y"
-          type="number"
+          label="Data de fim"
+          type="date"
           fullWidth
+          InputLabelProps={{ shrink: true }}
           className="mb-4"
         />
       </Box>

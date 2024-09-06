@@ -15,26 +15,10 @@ const ResultsSection: FC = () => {
       </Typography>
       <Box className="mb-6">
         <Typography variant="body1" className="text-[#5A473D]">
-          Matriz de Confusão
-        </Typography>
-        <Box className="bg-white h-40 rounded-lg shadow-inner mt-2">
-          {/* Placeholder for confusion matrix */}
-        </Box>
-      </Box>
-      <Box className="mb-6">
-        <Typography variant="body1" className="text-[#5A473D]">
-          Recall
-        </Typography>
-        <Box className="bg-white h-20 rounded-lg shadow-inner mt-2">
-          {/* Placeholder for recall */}
-        </Box>
-      </Box>
-      <Box className="mb-6">
-        <Typography variant="body1" className="text-[#5A473D]">
           Acurácia
         </Typography>
         <Box className="bg-white h-20 rounded-lg shadow-inner mt-2">
-          {/* Placeholder for accuracy */}
+
         </Box>
       </Box>
     </motion.div>

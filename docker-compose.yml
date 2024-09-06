@@ -1,29 +1,39 @@
-version: '3.8'
+version: "3.8"
 
-services: 
+services:
   # Frontend service (Next.js)
   frontend:
-    build: 
-      context: ./src/app   # Path to the frontend Dockerfile
+    build:
+      context: ./src/app # Path to the frontend Dockerfile
     ports:
       - "3000:3000"
     environment:
       - ENV=development
     depends_on:
-      - backend             # Ensure backend is up before the frontend starts
+      - backend-golang # Ensure backend is up before the frontend starts
     networks:
       - app-network
 
   # Backend service (Go app)
-  backend:
+  backend-golang:
     build:
-      context: ./src/backend  # Path to the backend Dockerfile
+      context: ./src/backend/golang/ # Path to the backend Dockerfile
     ports:
       - "9000:9000"
     environment:
-      - MONGO_URI=mongodb://db:27017/golang-db  # Correct MongoDB URI (using 'db' service name)
+      - MONGO_URI=mongodb://db:27017/golang-db # Correct MongoDB URI (using 'db' service name)
     depends_on:
-      - db                    # Ensure MongoDB is up before the backend starts
+      - db # Ensure MongoDB is up before the backend starts
+    networks:
+      - app-network
+
+  backend-model:
+    build:
+      context: ./src/backend/modelo/
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
     networks:
       - app-network
 
@@ -31,9 +41,9 @@ services:
   db:
     image: mongo:latest
     ports:
-      - "27017:27017"          # Expose MongoDB on the default port
+      - "27017:27017" # Expose MongoDB on the default port
     volumes:
-      - ./src/backend/dependencies/mongo/data/db:/data/db  # Persist MongoDB data
+      - ./src/backend/dependencies/mongo/data/db:/data/db # Persist MongoDB data
     environment:
       - MONGO_INITDB_DATABASE=golang-db
     networks:
@@ -41,4 +51,4 @@ services:
 
 networks:
   app-network:
-    driver: bridge  # Use bridge network for communication between services
+    driver: bridge # Use bridge network for communication between services

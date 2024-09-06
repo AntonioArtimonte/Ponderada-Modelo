@@ -32,17 +32,15 @@ type UpdateDB struct {
 }
 
 type TrainRequest struct {
-	Crypto string `json:"crypto"`
-	StartDate string `json:"startDate"`
-	EndDate string `json:"endDate"`
+    Crypto    string `json:"crypto"`
+    StartDate string `json:"start_date"`  
+    EndDate   string `json:"end_date"`    
 }
 
 type TrainResponse struct {
-	Message string `json:"message"`
-}
-
-type PredictRequest struct {
-	Data []float64 `json:"data"`
+	Message   string  `json:"message"`
+	TestLoss  *float64 `json:"test_loss"`
+	TestMae   *float64 `json:"test_mae"`
 }
 
 type PredictResponse struct {

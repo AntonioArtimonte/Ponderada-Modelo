@@ -189,33 +189,42 @@ func TrainModel(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewDecoder(r.Body).Decode(&request)
 
 	jsonData, err := json.Marshal(request)
-	utils.CheckError(err)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	// Sending a request to the FastAPI /train endpoint
-	resp, err := http.Post("http://localhost:8000/train", "application/json", bytes.NewBuffer(jsonData))
-	utils.CheckError(err)
+	resp, err := http.Post("http://backend-model:8000/train", "application/json", bytes.NewBuffer(jsonData))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
-	utils.CheckError(err)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
+	// Parse the response into TrainResponse struct
 	var trainResp models.TrainResponse
 	err = json.Unmarshal(body, &trainResp)
-	utils.CheckError(err)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	// Respond with the result from the FastAPI train endpoint
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(trainResp)
 }
 
+
 func PredictCrypto(w http.ResponseWriter, r *http.Request) {
-	var request models.PredictRequest
-	_ = json.NewDecoder(r.Body).Decode(&request)
-
-	jsonData, err := json.Marshal(request)
-	utils.CheckError(err)
-
-	// Sending a request to the FastAPI /predict endpoint
-	resp, err := http.Post("http://localhost:8000/predict", "application/json", bytes.NewBuffer(jsonData))
+	// Sending a request to the FastAPI /predict endpoint with no body
+	resp, err := http.Post("http://backend-model:8000/predict", "application/json", nil)
 	utils.CheckError(err)
 	defer resp.Body.Close()
 

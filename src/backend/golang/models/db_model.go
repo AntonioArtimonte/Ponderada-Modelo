@@ -6,6 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	)
 
+// Modelo da "base de dados"
 type DBModel struct {
 	ID          primitive.ObjectID `bson:"_id,omitempty"`
 	Crypto      string             `bson:"crypto"`

@@ -1,9 +1,21 @@
-import { FC } from 'react';
+import { FC, useState, useEffect } from 'react';
 import { TextField, Box } from '@mui/material';
 import { motion } from 'framer-motion';
 
+interface ParameterFormProps {
+  onFormValidation: (isValid: boolean) => void;
+}
 
-const ParameterForm: FC = () => {
+const ParameterForm: FC<ParameterFormProps> = ({ onFormValidation }) => {
+  const [startDate, setStartDate] = useState('');
+  const [crypto, setCrypto] = useState('');
+  const [endDate, setEndDate] = useState('');
+
+  useEffect(() => {
+    const isValid = startDate !== '' && crypto !== '' && endDate !== '';
+    onFormValidation(isValid);
+  }, [startDate, crypto, endDate, onFormValidation]);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -17,6 +29,8 @@ const ParameterForm: FC = () => {
           fullWidth
           InputLabelProps={{ shrink: true }}
           className="mb-4"
+          value={startDate}
+          onChange={(e) => setStartDate(e.target.value)}
         />
 
         <TextField
@@ -25,13 +39,18 @@ const ParameterForm: FC = () => {
           fullWidth
           InputLabelProps={{ shrink: true }}
           className="mb-4"
+          value={crypto}
+          onChange={(e) => setCrypto(e.target.value)}
         />
+
         <TextField
           label="Data de fim"
           type="date"
           fullWidth
           InputLabelProps={{ shrink: true }}
           className="mb-4"
+          value={endDate}
+          onChange={(e) => setEndDate(e.target.value)}
         />
       </Box>
     </motion.div>

@@ -11,12 +11,23 @@ import (
 
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/cors" // Import the CORS middleware package
 	"github.com/AntonioArtimonte/Ponderada-Modelo/config"
 	"github.com/AntonioArtimonte/Ponderada-Modelo/routes"
 )
 
 func main() {
 	router := chi.NewRouter()
+
+	// Enable CORS for the frontend running at http://localhost:3000
+	router.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:3000"}, // Frontend URL
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		AllowCredentials: true,                             // Allow credentials if needed
+		MaxAge:           300,                              // Maximum value for the preflight response cache
+	}))
+
 	router.Use(middleware.Logger)
 	router.Mount("/api", routes.ApiHandlers())
 

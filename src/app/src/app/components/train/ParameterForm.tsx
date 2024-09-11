@@ -2,8 +2,14 @@ import { FC, useState, useEffect } from 'react';
 import { TextField, Box } from '@mui/material';
 import { motion } from 'framer-motion';
 
+interface TrainRequest {
+  crypto: string;
+  start_date: string;
+  end_date: string;
+}
+
 interface ParameterFormProps {
-  onFormValidation: (isValid: boolean) => void;
+  onFormValidation: (isValid: boolean, data: TrainRequest) => void;
 }
 
 const ParameterForm: FC<ParameterFormProps> = ({ onFormValidation }) => {
@@ -13,8 +19,11 @@ const ParameterForm: FC<ParameterFormProps> = ({ onFormValidation }) => {
 
   useEffect(() => {
     const isValid = startDate !== '' && crypto !== '' && endDate !== '';
-    onFormValidation(isValid);
-  }, [startDate, crypto, endDate, onFormValidation]);
+    const formData = { crypto, start_date: startDate, end_date: endDate };
+
+    // Trigger validation only when the values change
+    onFormValidation(isValid, formData);
+  }, [startDate, crypto, endDate]);
 
   return (
     <motion.div
@@ -22,7 +31,7 @@ const ParameterForm: FC<ParameterFormProps> = ({ onFormValidation }) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.2 }}
     >
-      <Box className="bg-[#FAF3E0] p-6 rounded-xl shadow-lg mb-6">
+      <Box className="bg-[#FAF3E0] p-6 rounded-xl shadow-lg mb-6 p-6">
         <TextField
           label="Data de Início"
           type="date"

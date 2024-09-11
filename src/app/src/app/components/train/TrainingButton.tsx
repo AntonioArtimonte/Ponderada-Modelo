@@ -10,17 +10,23 @@ interface TrainingButtonProps {
 
 const TrainingButton: FC<TrainingButtonProps> = ({ isDisabled, onTrainingStart }) => {
 
+  const enabledBgColor = "#3E2723";
+  const disabledBgColor = "A9A9A9";
+
   return (
     <motion.div
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
+      whileHover={!isDisabled ? { scale: 1.05 } : {}}  
+      whileTap={!isDisabled ? { scale: 0.95 } : {}} 
     >
       <Button
         variant="contained"
         color="primary"
-        className="bg-[#3E2723] text-white px-6 py-2 rounded-lg"
         fullWidth
-        style={{backgroundColor: '#3E2723'}}
+        style={{
+          backgroundColor: isDisabled ? disabledBgColor : enabledBgColor,
+          color: 'white',
+          cursor: isDisabled ? 'not-allowed' : 'pointer',
+        }}
         disabled={isDisabled}
         onClick={onTrainingStart}
       >

@@ -1,14 +1,62 @@
 "use client";
 
-import { FC } from "react";
+import { FC, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
-interface StockChartProps {
-  history: { date: string; close: number }[];
+// Define the shape of the prediction data
+interface PredictionData {
+  date: string;
+  close: number;
 }
 
-const StockChart: FC<StockChartProps> = ({ history }) => {
+interface StockChartProps {
+  stock: string | null;  // The selected stock symbol
+}
+
+const StockChart: FC<StockChartProps> = ({ stock }) => {
+  const [predictions, setPredictions] = useState<PredictionData[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!stock) return;  // Don't fetch predictions if no stock is selected
+
+    const fetchPredictions = async () => {
+      try {
+        const response = await fetch(`http://localhost:9000/api/predict`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        const data = await response.json();
+
+        // Process the data to match the chart structure
+        const processedData: PredictionData[] = data.prediction.map((price: number, index: number) => {
+          const date = new Date(); // Start with today
+          date.setDate(date.getDate() + index); // Increment the date by index to simulate the future week
+
+          return {
+            date: date.toLocaleDateString("en-US"), // Format the date
+            close: price, // Use the price from the prediction
+          };
+        });
+
+        setPredictions(processedData);
+        setLoading(false);
+      } catch (error) {
+        console.error("Failed to fetch predictions:", error);
+        setLoading(false);
+      }
+    };
+
+    fetchPredictions();
+  }, [stock]); // Re-fetch when the stock changes
+
+  if (loading) {
+    return <p>Loading...</p>;
+  }
+
   return (
     <motion.div
       initial={{ scale: 0.9, opacity: 0 }}
@@ -16,9 +64,11 @@ const StockChart: FC<StockChartProps> = ({ history }) => {
       transition={{ duration: 0.5 }}
       className="bg-white p-4 rounded-lg shadow-lg mb-6"
     >
-      <h2 className="text-xl font-semibold text-[#3E2723] mb-4">Histórico de Preços</h2>
+      <h2 className="text-xl font-semibold text-[#3E2723] mb-4">
+        Previsão de Preços - {predictions.length > 0 && stock}
+      </h2>
       <ResponsiveContainer width="100%" height={300}>
-        <LineChart data={history}>
+        <LineChart data={predictions}>
           <XAxis dataKey="date" />
           <YAxis />
           <Tooltip />

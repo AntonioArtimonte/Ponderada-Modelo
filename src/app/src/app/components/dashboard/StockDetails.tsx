@@ -6,11 +6,9 @@ import { motion } from "framer-motion";
 interface StockDetailsProps {
   dailyClose: number;
   weeklyAverage: number;
-  monthlyAverage: number;
-  yearlyAverage: number;
 }
 
-const StockDetails: FC<StockDetailsProps> = ({ dailyClose, weeklyAverage, monthlyAverage, yearlyAverage }) => {
+const StockDetails: FC<StockDetailsProps> = ({ dailyClose, weeklyAverage}) => {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -25,12 +23,6 @@ const StockDetails: FC<StockDetailsProps> = ({ dailyClose, weeklyAverage, monthl
         </li>
         <li className="mb-2">
           <strong>Média Semanal: </strong> R${weeklyAverage.toFixed(2)}
-        </li>
-        <li className="mb-2">
-          <strong>Média Mensal: </strong> R${monthlyAverage.toFixed(2)}
-        </li>
-        <li className="mb-2">
-          <strong>Média Anual: </strong> R${yearlyAverage.toFixed(2)}
         </li>
       </ul>
     </motion.div>

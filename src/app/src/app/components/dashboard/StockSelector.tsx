@@ -1,14 +1,39 @@
 "use client";
 
-import { FC } from "react";
+import { FC, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
 interface StockSelectorProps {
   onChange: (stock: string) => void;
 }
 
+interface StockData {
+  stock: string;
+  trained: number;
+}
+
 const StockSelector: FC<StockSelectorProps> = ({ onChange }) => {
-  const stocks = ["AAPL", "GOOGL", "AMZN", "MSFT"];
+  const [stocks, setStocks] = useState<StockData[]>([]);
+
+  useEffect(() => {
+    const fetchStocks = async () => {
+      try {
+        const response = await fetch("http://localhost:9000/api/cryptos");
+        const data = await response.json();
+        
+        const transformedData: StockData[] = Object.keys(data.cryptos).map((key) => ({
+          stock: key,
+          trained: data.cryptos[key]
+        }));
+        
+        setStocks(transformedData);
+      } catch (error) {
+        console.error("Failed to fetch stocks:", error);
+      }
+    };
+
+    fetchStocks();
+  }, []);
 
   return (
     <motion.div
@@ -26,9 +51,14 @@ const StockSelector: FC<StockSelectorProps> = ({ onChange }) => {
         onChange={(e) => onChange(e.target.value)}
       >
         <option value="">--Selecione--</option>
-        {stocks.map((stock) => (
-          <option key={stock} value={stock}>
-            {stock}
+        {stocks.map((stockData) => (
+          <option
+            key={stockData.stock}
+            value={stockData.stock}
+            disabled={stockData.trained === 0}
+            className={stockData.trained === 0 ? "text-gray-400" : "text-black"}
+          >
+            {stockData.stock}
           </option>
         ))}
       </select>

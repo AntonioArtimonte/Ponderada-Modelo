@@ -31,14 +31,14 @@ const StockChart: FC<StockChartProps> = ({ stock }) => {
         });
         const data = await response.json();
 
-        // Process the data to match the chart structure
+
         const processedData: PredictionData[] = data.prediction.map((price: number, index: number) => {
-          const date = new Date(); // Start with today
-          date.setDate(date.getDate() + index); // Increment the date by index to simulate the future week
+          const date = new Date(); 
+          date.setDate(date.getDate() + index); 
 
           return {
-            date: date.toLocaleDateString("en-US"), // Format the date
-            close: price, // Use the price from the prediction
+            date: date.toLocaleDateString("en-US"), 
+            close: price,
           };
         });
 
@@ -51,7 +51,7 @@ const StockChart: FC<StockChartProps> = ({ stock }) => {
     };
 
     fetchPredictions();
-  }, [stock]); // Re-fetch when the stock changes
+  }, [stock]); 
 
   if (loading) {
     return <p>Loading...</p>;

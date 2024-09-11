@@ -30,6 +30,12 @@ class TrainedResponse(BaseModel):
 class CryptosResponse(BaseModel):
     cryptos: Optional[Dict[str, int]] = None
 
+class TestResponse(BaseModel):
+    crypto: str
+    date: str
+    actual_price: float
+    predicted_price: float
+
 # Endpoint to train the model on a specific cryptocurrency
 @router.post("/train", response_model=TrainResponse)
 async def train(request: TrainRequest):
@@ -79,3 +85,13 @@ async def cryptos():
         return CryptosResponse(cryptos=cryptos)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+@router.get("/test/{crypto}", response_model=TestResponse)
+async def test_crypto(crypto: str):
+    result = controller.test_crypto(crypto)
+    return TestResponse(
+        crypto=result["crypto"],
+        date=result["date"],
+        actual_price=result["actual_price"],
+        predicted_price=result["predicted_price"]
+    )

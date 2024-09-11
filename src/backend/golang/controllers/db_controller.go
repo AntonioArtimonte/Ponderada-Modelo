@@ -299,3 +299,47 @@ func AllCryptos(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(allCryptos)
 }
+
+func TestCrypto(w http.ResponseWriter, r *http.Request) {
+	// Extract the crypto symbol from the query parameters
+	crypto := r.URL.Query().Get("crypto")
+
+    crypto = strings.TrimSpace(crypto)
+
+	log.Printf("Sanitized crypto: %s", crypto)
+	if crypto == "" {
+		http.Error(w, "Missing crypto parameter", http.StatusBadRequest)
+		return
+	}
+
+	// Make a request to the backend to fetch actual vs predicted prices
+	backendURL := "http://backend-model:8000/test/" + crypto
+	resp, err := http.Get(backendURL)
+	if err != nil {
+		log.Printf("Error calling backend model: %v\n", err)
+		http.Error(w, "Error calling backend model", http.StatusInternalServerError)
+		return
+	}
+	defer resp.Body.Close()
+
+	// Read the response body
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("Error reading backend response: %v\n", err)
+		http.Error(w, "Error reading backend response", http.StatusInternalServerError)
+		return
+	}
+
+	// Unmarshal the response into the CryptoComparisonResponse struct
+	var comparisonResp models.TestPredicted
+	err = json.Unmarshal(body, &comparisonResp)
+	if err != nil {
+		log.Printf("Error unmarshalling backend response: %v\n", err)
+		http.Error(w, "Error processing backend response", http.StatusInternalServerError)
+		return
+	}
+
+	// Return the response as JSON
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(comparisonResp)
+}

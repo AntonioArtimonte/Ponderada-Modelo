@@ -19,6 +19,8 @@ interface TrainResponse {
   test_mae?: number;
 }
 
+// Não sei pq fiz essa pagina diferente mas agora to com preguiça de mudar, vai com deus
+
 const Treino: FC = () => {
   const [formValid, setFormValid] = useState(false);
   const [isTrainingStarted, setIsTrainingStarted] = useState(false);
@@ -51,7 +53,7 @@ const Treino: FC = () => {
       if (response.ok) {
         const data: TrainResponse = await response.json();
         setTrainResults(data);
-        setIsTrainingCompleted(true); // Show results when training is done
+        setIsTrainingCompleted(true);
       } else {
         console.error('Training failed');
       }

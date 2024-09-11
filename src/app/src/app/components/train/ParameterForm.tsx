@@ -21,7 +21,6 @@ const ParameterForm: FC<ParameterFormProps> = ({ onFormValidation }) => {
     const isValid = startDate !== '' && crypto !== '' && endDate !== '';
     const formData = { crypto, start_date: startDate, end_date: endDate };
 
-    // Trigger validation only when the values change
     onFormValidation(isValid, formData);
   }, [startDate, crypto, endDate]);
 

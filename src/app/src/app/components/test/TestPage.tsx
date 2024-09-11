@@ -11,21 +11,40 @@ const TestPage = () => {
   const [testResult, setTestResult] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
-  const runTest = (symbol: string) => {
+  const runTest = async (symbol: string) => {
     setLoading(true);
     setStockSymbol(symbol);
 
-    // Mock test logic for demonstration
-    setTimeout(() => {
+    try {
+
+      const response = await fetch(`http://localhost:9000/api/test?crypto=${symbol}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch test result");
+      }
+
+
+      const data = await response.json();
+
+
+      const actual = data.actual_price;
+      const predicted = data.predicted_price;
+      const percentageDifference = Math.abs((actual - predicted) / actual) * 100;
+
+
       const result = {
-        symbol: symbol,
-        actualValue: 150.25,
-        predictedValue: 150.23,
-        match: true,
+        symbol: data.crypto,
+        actualValue: actual,
+        predictedValue: predicted,
+        match: percentageDifference <= 5,
       };
+
       setTestResult(result);
+    } catch (error) {
+      console.error("Error fetching test result:", error);
+      setTestResult(null);
+    } finally {
       setLoading(false);
-    }, 2000); // Simulating a 2-second delay for AI processing
+    }
   };
 
   return (

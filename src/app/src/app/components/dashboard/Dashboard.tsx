@@ -6,7 +6,6 @@ import StockSelector from "./StockSelector";
 import StockChart from "./StockChart";
 import StockDetails from "./StockDetails";
 
-// Define the type for stock data
 interface StockData {
   stock: string;
   dailyClose: number;
@@ -17,7 +16,6 @@ const Dashboard = () => {
   const [selectedStock, setSelectedStock] = useState<string | null>(null);
   const [stockData, setStockData] = useState<StockData | null>(null);
 
-  // Function to fetch prediction data from the API and calculate dailyClose and weeklyAverage
   const fetchStockData = async (stock: string) => {
     try {
       const response = await fetch(`http://localhost:9000/api/predict`, {
@@ -25,7 +23,7 @@ const Dashboard = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ crypto: stock }), // Send the stock symbol as the body
+        body: JSON.stringify({ crypto: stock }), 
       });
 
       if (!response.ok) {
@@ -34,17 +32,13 @@ const Dashboard = () => {
 
       const data = await response.json();
 
-      // Extract the prediction data from the response
       const predictions = data.prediction;
 
-      // Calculate the weekly average by summing up the values and dividing by 7
       const weeklyAverage =
         predictions.reduce((sum: number, value: number) => sum + value, 0) / 7;
 
-      // Set the dailyClose as the last predicted value
       const dailyClose = predictions[predictions.length - 1];
 
-      // Update the stockData state with the new values
       setStockData({
         stock: stock,
         dailyClose: dailyClose,
@@ -57,7 +51,7 @@ const Dashboard = () => {
 
   const handleStockChange = (stock: string) => {
     setSelectedStock(stock);
-    fetchStockData(stock); // Fetch stock data when a stock is selected
+    fetchStockData(stock);
   };
 
   return (
@@ -77,7 +71,7 @@ const Dashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          <StockChart stock={selectedStock} /> {/* Pass the selected stock to StockChart */}
+          <StockChart stock={selectedStock} />
           {stockData && (
             <StockDetails
               dailyClose={stockData.dailyClose}

@@ -25,6 +25,8 @@ func ApiHandlers() http.Handler {
 
 		// Get all ever trained cryptos
 		r.Get("/cryptos", controllers.AllCryptos)
+
+		r.Get("/test", controllers.TestCrypto)
 	})
 
 	return router

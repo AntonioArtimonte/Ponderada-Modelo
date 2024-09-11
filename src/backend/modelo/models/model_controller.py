@@ -52,3 +52,16 @@ class ModelController:
 
         # Return the processed data
         return processed_data
+    
+    def test_crypto(self, crypto: str):
+        '''
+        Compare the actual price of yesterday with the predicted price.
+        '''
+        result = self.predictor.test_crypto(crypto)
+        return {
+            "crypto": crypto,
+            "date": result['date'],
+            "actual_price": result['actual_price'],
+            "predicted_price": result['predicted_price']
+        }
+

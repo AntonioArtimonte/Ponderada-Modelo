@@ -6,7 +6,7 @@ from sklearn.preprocessing import MinMaxScaler
 import tensorflow as tf
 from tensorflow.keras import layers, models
 from tensorflow.keras.callbacks import EarlyStopping
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # JSON file to store trained crypto status and model information
 TRAINED_CRYPTOS_FILE = "trained_cryptos.json"
@@ -160,3 +160,43 @@ class CryptoPredictor:
 
         trained_cryptos = self.load_trained_cryptos()
         return trained_cryptos
+    
+    def test_crypto(self, crypto: str):
+        '''
+        Fetch the actual price for 2 days ago and compare it with the predicted price.
+        If no data is available for that day, handle the case gracefully.
+        '''
+        # Set the end date to be 2 days ago from today
+        today = datetime.today()
+        two_days_ago = today - timedelta(days=2)
+
+        # Format the date as 'YYYY-MM-DD'
+        two_days_ago_str = two_days_ago.strftime('%Y-%m-%d')
+
+        # Fetch data for exactly 2 days ago
+        actual_data = yf.download(str(crypto), start="2024-09-01", end=two_days_ago_str)
+
+        # Check if data is available for that date
+        if actual_data.empty:
+            return {
+                "message": f"No data found for {crypto} on {two_days_ago_str}",
+                "date": two_days_ago_str
+            }
+
+        # Extract the actual price from the data
+        actual_price = actual_data['Close'].values[-1]
+
+        # Load the model and historical data for predictions
+        self.load_model()  
+        historical_data = self.load_data(crypto, start_date='2021-01-01', end_date=two_days_ago_str)
+
+        # Make the prediction for 2 days ago
+        predictions = self.predict_future_prices(historical_data, steps=1)
+        predicted_price = predictions[0]
+
+        # Return the actual price, predicted price, and the date
+        return {
+            "actual_price": actual_price,
+            "predicted_price": predicted_price,
+            "date": two_days_ago_str
+        }

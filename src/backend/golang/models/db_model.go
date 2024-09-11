@@ -61,3 +61,10 @@ type TrainedResp struct {
 type AllCryptos struct {
     Cryptos map[string]int `json:"cryptos"` 
 }
+
+type TestPredicted struct {
+	Crypto string `json:"crypto"`
+	Date string `json:"date"`
+	ActualPrice float64 `json:"actual_price"`
+	PredictedPrice float64 `json:"predicted_price"`
+}

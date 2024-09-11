@@ -41,3 +41,14 @@ class ModelController:
     def get_trained_crypto(self):
         print("chegou aqui")
         return self.predictor.check_trained()
+    
+    def get_all_cryptos(self):
+        raw_cryptos_data = self.predictor.get_all_cryptos()
+
+        print(raw_cryptos_data)  # Debug: Print the raw data
+
+        # Process the data to only return the 'trained' status
+        processed_data = {crypto: info['trained'] for crypto, info in raw_cryptos_data.items()}
+
+        # Return the processed data
+        return processed_data

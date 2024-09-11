@@ -283,3 +283,19 @@ func TrainedCrypto(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(trainedResp)
 }
+
+func AllCryptos(w http.ResponseWriter, r *http.Request) {
+
+	resp, err := http.Get("http://backend-model:8000/cryptos")
+	utils.CheckError(err)
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	utils.CheckError(err)
+
+	var allCryptos models.AllCryptos
+	err = json.Unmarshal(body, &allCryptos)
+	utils.CheckError(err)
+
+	json.NewEncoder(w).Encode(allCryptos)
+}

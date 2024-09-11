@@ -57,3 +57,7 @@ type PredictResponse struct {
 type TrainedResp struct {
 	Crypto string `json:"crypto"`
 }
+
+type AllCryptos struct {
+    Cryptos map[string]int `json:"cryptos"` 
+}

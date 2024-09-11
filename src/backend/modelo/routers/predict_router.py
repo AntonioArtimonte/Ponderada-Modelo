@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from typing import Optional
+from typing import Optional, Dict
 from pydantic import BaseModel
 from datetime import datetime
 from models.model_controller import ModelController
@@ -27,6 +27,9 @@ class PredictResponse(BaseModel):
 class TrainedResponse(BaseModel):
     crypto: Optional[str] = None
 
+class CryptosResponse(BaseModel):
+    cryptos: Optional[Dict[str, int]] = None
+
 # Endpoint to train the model on a specific cryptocurrency
 @router.post("/train", response_model=TrainResponse)
 async def train(request: TrainRequest):
@@ -47,7 +50,7 @@ async def predict():
     try:
         # Call the controller to handle prediction (7-day prediction)
         predictions = controller.predict(steps=7)
-        
+
         crypto = controller.get_trained_crypto()
         
         # Convert numpy.float32 to standard Python float
@@ -64,5 +67,15 @@ async def trained():
         crypto = controller.get_trained_crypto()
 
         return TrainedResponse(crypto=crypto)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@router.get("/cryptos", response_model=CryptosResponse)
+async def cryptos():
+    try:
+        # Call the controller to get all ever trained cryptos
+        cryptos = controller.get_all_cryptos()
+
+        return CryptosResponse(cryptos=cryptos)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

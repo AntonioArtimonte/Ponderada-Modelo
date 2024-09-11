@@ -152,3 +152,11 @@ class CryptoPredictor:
                 return crypto  # Return the name of the trained crypto
         
         return None  # Return None if no crypto is trained
+    
+    def get_all_cryptos(self):
+        '''
+        Get all the cryptocurrencies from the JSON, with the status 0-1 according to what's in the JSON.
+        '''
+
+        trained_cryptos = self.load_trained_cryptos()
+        return trained_cryptos

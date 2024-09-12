@@ -6,10 +6,9 @@ from models.model_controller import ModelController
 
 router = APIRouter()
 
-# Instantiate the controller
 controller = ModelController()
 
-# Request and Response Models
+# Modelos tipados
 class TrainRequest(BaseModel):
     crypto: str
     start_date: str
@@ -36,28 +35,27 @@ class TestResponse(BaseModel):
     actual_price: float
     predicted_price: float
 
-# Endpoint to train the model on a specific cryptocurrency
+# Endpoint treino modelo
 @router.post("/train", response_model=TrainResponse)
 async def train(request: TrainRequest):
     try:
-        # Call the controller to handle training
         result = controller.train(request.crypto, request.start_date, request.end_date)
 
         return TrainResponse(test_loss=result.get("test_loss"), test_mae=result.get("test_mae"), message=result.get("message", "Model trained successfully"))
     except ValueError as e:
-        # If the model is already trained, return a message without training again
         return TrainResponse(message=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Endpoint to predict cryptocurrency price
-@router.post("/predict", response_model=PredictResponse)
-async def predict():
+# Endpoint predizer valor da criptomoeda
+@router.post("/predict/{crypto}", response_model=PredictResponse)
+async def predict(crypto: str):
+
     try:
         # Call the controller to handle prediction (7-day prediction)
-        predictions = controller.predict(steps=7)
-
-        crypto = controller.get_trained_crypto()
+        predictions = controller.predict(steps=7, crypto=crypto)
+        print(predictions)
+        print("antes do crypto")
         
         # Convert numpy.float32 to standard Python float
         predictions = [float(p) for p in predictions]

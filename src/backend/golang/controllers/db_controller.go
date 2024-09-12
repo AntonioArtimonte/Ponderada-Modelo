@@ -223,7 +223,18 @@ func TrainModel(w http.ResponseWriter, r *http.Request) {
 
 func PredictCrypto(w http.ResponseWriter, r *http.Request) {
 
-	resp, err := http.Post("http://backend-model:8000/predict", "application/json", nil)
+	crypto := r.URL.Query().Get("crypto")
+
+	crypto = strings.TrimSpace(crypto)
+
+	if crypto == "" {
+		http.Error(w, "Missing crypto parameter", http.StatusBadRequest)
+		return
+	}
+
+	backendURL := "http://backend-model:8000/predict/" + crypto
+
+	resp, err := http.Post(backendURL, "application/json", nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

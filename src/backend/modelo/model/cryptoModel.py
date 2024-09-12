@@ -8,26 +8,31 @@ from tensorflow.keras import layers, models
 from tensorflow.keras.callbacks import EarlyStopping
 from datetime import datetime, timedelta
 
-# JSON file to store trained crypto status and model information
+import os
+
+# Obs: Esse código está uma bizarrice, não pergunte como funciona eu sei no dia 12/09/2024, depois disso não vou saber mais nada mas a classe ficou daora
+
+# JSON QUE GUARDA OS CRYPTOS TREINADOS
 TRAINED_CRYPTOS_FILE = "trained_cryptos.json"
 
+MAX_MODELS = 5  # PODE MUDAR, NÚMERO MÁXIMO DE MODELOS QUE VOCÊ DESEJA GUARDAR
+
+# TODO: DEIXAR MAX_MODELS COMO .ENV
+
 class CryptoPredictor:
-    def __init__(self, seq_length=60, model_path="latest_crypto_model.h5"):
+    def __init__(self, seq_length=60):
         self.seq_length = seq_length
         self.scaler = MinMaxScaler(feature_range=(0, 1))
         self.model = None
-        self.model_path = model_path
 
     def load_data(self, crypto: str, start_date: str, end_date: str):
-        # Ensure date is formatted as 'YYYY-MM-DD'
+
         try:
-            # Parse and reformat dates if necessary
             start_date = datetime.strptime(start_date, "%Y-%m-%d").strftime("%Y-%m-%d")
             end_date = datetime.strptime(end_date, "%Y-%m-%d").strftime("%Y-%m-%d")
         except ValueError as e:
             raise ValueError(f"Invalid date format: {str(e)}")
 
-        # Fetch data from Yahoo Finance with correct date format
         df = yf.download(crypto, start=start_date, end=end_date)
         
         if df.empty:
@@ -63,44 +68,54 @@ class CryptoPredictor:
         weighted_inputs = layers.Multiply()([inputs, attention_weights])
         return weighted_inputs
 
-    def train_model(self, X_train, y_train, X_test, y_test, crypto, epochs=20, batch_size=32):
-        """Train the model and save it, but only if it hasn't been trained yet."""
+    def train_model(self, X_train, y_train, X_test, y_test, crypto: str, epochs: int=20, batch_size: int=32):
+        """Treina e salva o modelo se o mesmo ainda não foi treinado."""
         
-        # Check if the model is already trained
         trained_cryptos = self.load_trained_cryptos()
         if crypto in trained_cryptos and trained_cryptos[crypto]["trained"] == 1:
             raise ValueError(f"Model for {crypto} is already trained.")
 
-        # Proceed with training if not already trained
         early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
         history = self.model.fit(X_train, y_train, epochs=epochs, batch_size=batch_size, validation_data=(X_test, y_test), callbacks=[early_stopping])
         test_loss, test_mae = self.model.evaluate(X_test, y_test)
 
-        # Save the model and update the JSON file
         self.save_model(crypto)
         return test_loss, test_mae
 
 
     def save_model(self, crypto: str):
         '''
-        Save the trained model and update the trained cryptocurrency in the JSON file.
+        Save the trained model and manage the last 5 trained models. 
+        The oldest model will still be kept in the JSON, but its trained status will be set to 0.
         '''
-        # Save the trained model
-        self.model.save(self.model_path)
+        model_filename = f"{crypto: str}-model.h5"
+        model_path = os.path.join('.', model_filename)
+        
+        self.model.save(model_path)
 
-        # Load the current trained cryptos from JSON
         trained_cryptos = self.load_trained_cryptos()
 
-        # Mark all previously trained cryptos as untrained
-        for key in trained_cryptos:
-            trained_cryptos[key]["trained"] = 0
+        if "models" not in trained_cryptos:
+            trained_cryptos["models"] = []
+        
+        trained_cryptos["models"].append(model_filename)
 
-        # Update the trained status for the current crypto
-        trained_cryptos[crypto] = {"trained": 1, "model_path": self.model_path}
+        if len(trained_cryptos["models"]) > MAX_MODELS:
+            oldest_model = trained_cryptos["models"][0] 
 
-        # Save the updated trained cryptos to JSON
+            for crypto_name, crypto_info in trained_cryptos.items():
+                if isinstance(crypto_info, dict) and crypto_info.get("model_path") == os.path.join('.', oldest_model):
+                    trained_cryptos[crypto_name]["trained"] = 0
+                    break
+            
+            trained_cryptos["models"].pop(0)
+
+        trained_cryptos[crypto: str] = {"trained": 1, "model_path": model_path}
+
         with open(TRAINED_CRYPTOS_FILE, 'w') as file:
             json.dump(trained_cryptos, file, indent=4)
+
+
 
     def load_trained_cryptos(self):
         '''
@@ -112,19 +127,19 @@ class CryptoPredictor:
         except FileNotFoundError:
             return {}
 
-    def load_model(self):
+    def load_model(self, crypto: str):
         '''
-        Load the latest trained model from the JSON file.
+        Load the trained model for the specified cryptocurrency from the JSON file.
         '''
         trained_cryptos = self.load_trained_cryptos()
-        latest_trained_crypto = None
-        for crypto, status in trained_cryptos.items():
-            if status["trained"] == 1:
-                latest_trained_crypto = crypto
-                model_path = status["model_path"]
-                self.model = tf.keras.models.load_model(model_path)
-                return latest_trained_crypto
-        return None
+
+        if crypto in trained_cryptos and trained_cryptos[crypto]["trained"] == 1:
+            model_path = trained_cryptos[crypto]["model_path"]
+            self.model = tf.keras.models.load_model(model_path)
+            return crypto
+
+        return None 
+
 
     def predict_future_prices(self, data, steps):
         '''
@@ -140,18 +155,19 @@ class CryptoPredictor:
             predicted_price_scaled = np.array(predicted_price_scaled).reshape((1, 1))
             current_sequence = np.append(current_sequence, predicted_price_scaled)[-self.seq_length:]
         return future_predictions
+
         
     def check_trained(self):
         '''
-        Check if there are any trained models and return the name of the trained cryptocurrency.
+        Check if there are any trained models and return the names of all trained cryptocurrencies as a comma-separated string.
         '''
         trained_cryptos = self.load_trained_cryptos()
-        
-        for crypto, status in trained_cryptos.items():
-            if status["trained"] == 1:
-                return crypto  # Return the name of the trained crypto
-        
-        return None  # Return None if no crypto is trained
+
+        cryptos = [crypto for crypto, status in trained_cryptos.items() if status["trained"] == 1]
+
+        if cryptos:
+            return "; ".join(cryptos) 
+        return None 
     
     def get_all_cryptos(self):
         '''
@@ -166,35 +182,27 @@ class CryptoPredictor:
         Fetch the actual price for 2 days ago and compare it with the predicted price.
         If no data is available for that day, handle the case gracefully.
         '''
-        # Set the end date to be 2 days ago from today
         today = datetime.today()
         two_days_ago = today - timedelta(days=2)
 
-        # Format the date as 'YYYY-MM-DD'
         two_days_ago_str = two_days_ago.strftime('%Y-%m-%d')
 
-        # Fetch data for exactly 2 days ago
         actual_data = yf.download(str(crypto), start="2024-09-01", end=two_days_ago_str)
 
-        # Check if data is available for that date
         if actual_data.empty:
             return {
                 "message": f"No data found for {crypto} on {two_days_ago_str}",
                 "date": two_days_ago_str
             }
 
-        # Extract the actual price from the data
         actual_price = actual_data['Close'].values[-1]
 
-        # Load the model and historical data for predictions
         self.load_model()  
         historical_data = self.load_data(crypto, start_date='2021-01-01', end_date=two_days_ago_str)
 
-        # Make the prediction for 2 days ago
         predictions = self.predict_future_prices(historical_data, steps=1)
         predicted_price = predictions[0]
 
-        # Return the actual price, predicted price, and the date
         return {
             "actual_price": actual_price,
             "predicted_price": predicted_price,

@@ -18,12 +18,12 @@ const Dashboard = () => {
 
   const fetchStockData = async (stock: string) => {
     try {
-      const response = await fetch(`http://localhost:9000/api/predict`, {
+      // Use GET request with the query parameter for crypto
+      const response = await fetch(`http://localhost:9000/api/predict?crypto=${stock}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ crypto: stock }), 
       });
 
       if (!response.ok) {

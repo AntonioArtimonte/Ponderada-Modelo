@@ -21,9 +21,9 @@ const StockChart: FC<StockChartProps> = ({ stock }) => {
   useEffect(() => {
     if (!stock) return;  // Don't fetch predictions if no stock is selected
 
-    const fetchPredictions = async () => {
+    const fetchPredictions = async (stock: string) => {
       try {
-        const response = await fetch(`http://localhost:9000/api/predict`, {
+        const response = await fetch(`http://localhost:9000/api/predict?crypto=${stock}`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -50,7 +50,7 @@ const StockChart: FC<StockChartProps> = ({ stock }) => {
       }
     };
 
-    fetchPredictions();
+    fetchPredictions(stock);
   }, [stock]); 
 
   if (loading) {

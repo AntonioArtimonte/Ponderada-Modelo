@@ -40,6 +40,7 @@ class TestResponse(BaseModel):
 async def train(request: TrainRequest):
     try:
         result = controller.train(request.crypto, request.start_date, request.end_date)
+        print(result)
 
         return TrainResponse(test_loss=result.get("test_loss"), test_mae=result.get("test_mae"), message=result.get("message", "Model trained successfully"))
     except ValueError as e:

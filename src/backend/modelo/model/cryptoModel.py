@@ -88,7 +88,7 @@ class CryptoPredictor:
         Save the trained model and manage the last 5 trained models. 
         The oldest model will still be kept in the JSON, but its trained status will be set to 0.
         '''
-        model_filename = f"{crypto: str}-model.h5"
+        model_filename = f"{crypto}-model.h5"
         model_path = os.path.join('.', model_filename)
         
         self.model.save(model_path)
@@ -110,7 +110,7 @@ class CryptoPredictor:
             
             trained_cryptos["models"].pop(0)
 
-        trained_cryptos[crypto: str] = {"trained": 1, "model_path": model_path}
+        trained_cryptos[crypto] = {"trained": 1, "model_path": model_path}
 
         with open(TRAINED_CRYPTOS_FILE, 'w') as file:
             json.dump(trained_cryptos, file, indent=4)
@@ -197,7 +197,7 @@ class CryptoPredictor:
 
         actual_price = actual_data['Close'].values[-1]
 
-        self.load_model()  
+        self.load_model(crypto)  
         historical_data = self.load_data(crypto, start_date='2021-01-01', end_date=two_days_ago_str)
 
         predictions = self.predict_future_prices(historical_data, steps=1)

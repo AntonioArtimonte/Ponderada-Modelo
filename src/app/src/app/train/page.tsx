@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useState } from 'react';
+import { FC, useState, useCallback } from 'react';
 import Header from '../components/train/Header';
 import ParameterForm from '../components/train/ParameterForm';
 import TrainingButton from '../components/train/TrainingButton';
@@ -19,8 +19,6 @@ interface TrainResponse {
   test_mae?: number;
 }
 
-// Não sei pq fiz essa pagina diferente mas agora to com preguiça de mudar, vai com deus
-
 const Treino: FC = () => {
   const [formValid, setFormValid] = useState(false);
   const [isTrainingStarted, setIsTrainingStarted] = useState(false);
@@ -32,10 +30,13 @@ const Treino: FC = () => {
     end_date: ''
   });
 
-  const handleFormValidation = (isValid: boolean, data: TrainRequest) => {
-    setFormValid(isValid);
-    setFormData(data);
-  };
+  const handleFormValidation = useCallback(
+    (isValid: boolean, data: TrainRequest) => {
+      setFormValid(isValid);
+      setFormData(data);
+    },
+    [] // Empty dependency array because setFormValid and setFormData are stable
+  );
 
   const handleTrainingStart = async () => {
     setIsTrainingStarted(true);

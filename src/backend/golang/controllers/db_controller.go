@@ -1,19 +1,19 @@
 package controllers
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"io"
 	"log"
 	"net/http"
 	"strings"
-	"bytes"
 	"time"
-	"io"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/thedevsaddam/renderer"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+
 	"github.com/AntonioArtimonte/Ponderada-Modelo/config"
 	"github.com/AntonioArtimonte/Ponderada-Modelo/models"
 	"github.com/AntonioArtimonte/Ponderada-Modelo/utils"
@@ -21,175 +21,74 @@ import (
 
 var rnd *renderer.Render = renderer.New()
 
-// GetDB retrieves all records from the database.
+// LogEntry represents a log entry in the database
+
+// Helper function to log requests
+func logRequest(requestType string, statusCode int, completionTime time.Duration, cryptoName string, err error) {
+	logEntry := models.LogEntry{
+		ID:             primitive.NewObjectID(),
+		Time:           time.Now(),
+		RequestType:    requestType,
+		StatusCode:     statusCode,
+		CompletionTime: completionTime,
+		CryptoName:     cryptoName,
+	}
+
+
+	// Insert the logEntry into MongoDB
+	_, insertErr := config.Db.Collection("logs").InsertOne(context.TODO(), logEntry)
+	if insertErr != nil {
+		log.Printf("Error inserting log entry into MongoDB: %v\n", insertErr)
+	}
+}
+
+// GetDB retrieves all logs from the database.
 func GetDB(w http.ResponseWriter, r *http.Request) {
-	var dbListFromDB []models.DBModel
+	var logs []models.LogEntry
 	filter := bson.D{}
 
-	cursor, err := config.Db.Collection(config.CollectionName).Find(context.Background(), filter)
-	dbList := []models.DB{}
-
-	if err = cursor.All(context.Background(), &dbListFromDB); err != nil {
-		utils.CheckError(err)
-	}
-
-	for _, td := range dbListFromDB {
-		dbList = append(dbList, models.DB{
-			ID:         td.ID.Hex(),
-			Crypto:     td.Crypto,
-			Predictions: td.Predictions,
-			Timestamp:  td.Timestamp,
-		})
-	}
-
-	rnd.JSON(w, http.StatusOK, renderer.M{
-		"message": "All data retrieved",
-		"data":    dbList,
-	})
-}
-
-// CreateDB inserts a new record into the database.
-func CreateDB(w http.ResponseWriter, r *http.Request) {
-	var dbReq models.CreateDB
-
-	if err := json.NewDecoder(r.Body).Decode(&dbReq); err != nil {
-		log.Printf("Failed to decode request body %v\n", err)
-		rnd.JSON(w, http.StatusBadRequest, renderer.M{
-			"message": "Invalid request",
-		})
-		return
-	}
-
-	if dbReq.Crypto == "" || len(dbReq.Predictions) == 0 || dbReq.Timestamp.IsZero() {
-		rnd.JSON(w, http.StatusBadRequest, renderer.M{
-			"message": "All fields are required",
-		})
-		return
-	}
-
-	dbModel := models.DBModel{
-		ID:         primitive.NewObjectID(),
-		Crypto:     dbReq.Crypto,
-		Predictions: dbReq.Predictions,
-	}
-
-	_, err := config.Db.Collection(config.CollectionName).InsertOne(r.Context(), dbModel)
+	cursor, err := config.Db.Collection("logs").Find(context.Background(), filter)
 	if err != nil {
 		utils.CheckError(err)
-		rnd.JSON(w, http.StatusBadRequest, renderer.M{
-			"message": "Could not insert into DB",
-			"error":   err.Error(),
-		})
-		return
-	}
-
-	rnd.JSON(w, http.StatusOK, renderer.M{
-		"message": "Data inserted successfully",
-	})
-}
-
-// UpdateDB updates an existing record in the database.
-func UpdateDB(w http.ResponseWriter, r *http.Request) {
-	id := strings.TrimSpace(chi.URLParam(r, "id"))
-	objectID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		log.Printf("The id param is not a valid hex %v\n", err.Error())
-		rnd.JSON(w, http.StatusBadRequest, renderer.M{
-			"message": "Invalid ID",
-		})
-		return
-	}
-
-	var updateReq models.UpdateDB
-	if err := json.NewDecoder(r.Body).Decode(&updateReq); err != nil {
-		log.Printf("Failed to decode request body %v\n", err.Error())
-		rnd.JSON(w, http.StatusBadRequest, renderer.M{
-			"message": "Invalid request body",
-		})
-		return
-	}
-
-	if updateReq.Crypto == "" || len(updateReq.Predictions) == 0 || updateReq.Timestamp.IsZero() {
-		rnd.JSON(w, http.StatusBadRequest, renderer.M{
-			"message": "All fields are required",
-		})
-		return
-	}
-
-	filter := bson.M{"_id": objectID}
-	update := bson.M{"$set": bson.M{
-		"crypto":      updateReq.Crypto,
-		"predictions": updateReq.Predictions,
-		"timestamp":   updateReq.Timestamp,
-	}}
-
-	result, err := config.Db.Collection(config.CollectionName).UpdateOne(r.Context(), filter, update)
-	if err != nil {
-		log.Printf("Failed to update record %v\n", err.Error())
 		rnd.JSON(w, http.StatusInternalServerError, renderer.M{
-			"message": "Could not update the record",
+			"message": "Failed to retrieve logs",
 			"error":   err.Error(),
 		})
 		return
 	}
+	defer cursor.Close(context.Background())
 
-	if result.ModifiedCount == 0 {
-		rnd.JSON(w, http.StatusNotFound, renderer.M{
-			"message": "Record not found",
-		})
-		return
-	}
-
-	rnd.JSON(w, http.StatusOK, renderer.M{
-		"message": "Record updated successfully",
-		"data":    result.ModifiedCount,
-	})
-}
-
-// DeleteDB removes a record from the database.
-func DeleteDB(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
-	objectID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		log.Printf("The id param is not a valid hex %v\n", err)
-		rnd.JSON(w, http.StatusBadRequest, renderer.M{
-			"message": "Invalid ID",
-		})
-		return
-	}
-
-	filter := bson.M{"_id": objectID}
-	result, err := config.Db.Collection(config.CollectionName).DeleteOne(r.Context(), filter)
-	if err != nil {
-		log.Printf("Failed to delete record %v\n", err.Error())
+	if err = cursor.All(context.Background(), &logs); err != nil {
+		utils.CheckError(err)
 		rnd.JSON(w, http.StatusInternalServerError, renderer.M{
-			"message": "Could not delete the record",
+			"message": "Failed to parse logs",
 			"error":   err.Error(),
 		})
 		return
 	}
 
-	if result.DeletedCount == 0 {
-		rnd.JSON(w, http.StatusNotFound, renderer.M{
-			"message": "Record not found",
-		})
-		return
-	}
-
 	rnd.JSON(w, http.StatusOK, renderer.M{
-		"message": "Record deleted successfully",
-		"data":    result.DeletedCount,
+		"message": "All logs retrieved",
+		"data":    logs,
 	})
 }
 
-
+// TrainModel handles the training of the model and logs the request.
 func TrainModel(w http.ResponseWriter, r *http.Request) {
+	startTime := time.Now()
+
 	var request models.TrainRequest
-	_ = json.NewDecoder(r.Body).Decode(&request)
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		logRequest("train", http.StatusBadRequest, time.Since(startTime), "", err)
+		return
+	}
 
 	jsonData, err := json.Marshal(request)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		logRequest("train", http.StatusBadRequest, time.Since(startTime), "", err)
 		return
 	}
 
@@ -197,6 +96,7 @@ func TrainModel(w http.ResponseWriter, r *http.Request) {
 	resp, err := http.Post("http://backend-model:8000/train", "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		logRequest("train", http.StatusInternalServerError, time.Since(startTime), "", err)
 		return
 	}
 	defer resp.Body.Close()
@@ -204,6 +104,7 @@ func TrainModel(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		logRequest("train", http.StatusInternalServerError, time.Since(startTime), "", err)
 		return
 	}
 
@@ -212,23 +113,28 @@ func TrainModel(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal(body, &trainResp)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		logRequest("train", http.StatusInternalServerError, time.Since(startTime), "", err)
 		return
 	}
 
 	// Respond with the result from the FastAPI train endpoint
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(trainResp)
+
+	// Log the request
+	logRequest("train", http.StatusOK, time.Since(startTime), "", nil)
 }
 
-
+// PredictCrypto handles the prediction request and logs it.
 func PredictCrypto(w http.ResponseWriter, r *http.Request) {
+	startTime := time.Now()
 
 	crypto := r.URL.Query().Get("crypto")
-
 	crypto = strings.TrimSpace(crypto)
 
 	if crypto == "" {
 		http.Error(w, "Missing crypto parameter", http.StatusBadRequest)
+		logRequest("predict", http.StatusBadRequest, time.Since(startTime), "", nil)
 		return
 	}
 
@@ -237,120 +143,155 @@ func PredictCrypto(w http.ResponseWriter, r *http.Request) {
 	resp, err := http.Post(backendURL, "application/json", nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		logRequest("predict", http.StatusInternalServerError, time.Since(startTime), crypto, err)
 		return
 	}
 	defer resp.Body.Close()
 
-
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		logRequest("predict", http.StatusInternalServerError, time.Since(startTime), crypto, err)
 		return
 	}
-
 
 	var predictResp models.PredictResponse
 	err = json.Unmarshal(body, &predictResp)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		logRequest("predict", http.StatusInternalServerError, time.Since(startTime), crypto, err)
 		return
 	}
 
-
-	dbModel := models.DBModel{
-		ID:         primitive.NewObjectID(),
-		Crypto:     predictResp.Crypto,
-		Predictions: predictResp.Prediction,
-		Timestamp:  time.Now(),
-	}
-
-
-	_, err = config.Db.Collection(config.CollectionName).InsertOne(context.TODO(), dbModel)
-	if err != nil {
-		log.Printf("Error inserting prediction into MongoDB: %v\n", err)
-		http.Error(w, "Error storing prediction in the database", http.StatusInternalServerError)
-		return
-	}
-
-
+	// Respond with the prediction result
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(predictResp)
+
+	// Log the request
+	logRequest("predict", http.StatusOK, time.Since(startTime), crypto, nil)
 }
 
-
-
+// TrainedCrypto retrieves the list of trained cryptocurrencies and logs the request.
 func TrainedCrypto(w http.ResponseWriter, r *http.Request) {
+	startTime := time.Now()
 
 	resp, err := http.Get("http://backend-model:8000/trained")
-	utils.CheckError(err)
+	if err != nil {
+		utils.CheckError(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		logRequest("trained", http.StatusInternalServerError, time.Since(startTime), "", err)
+		return
+	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
-	utils.CheckError(err)
+	if err != nil {
+		utils.CheckError(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		logRequest("trained", http.StatusInternalServerError, time.Since(startTime), "", err)
+		return
+	}
 
 	var trainedResp models.TrainedResp
 	err = json.Unmarshal(body, &trainedResp)
-	utils.CheckError(err)
+	if err != nil {
+		utils.CheckError(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		logRequest("trained", http.StatusInternalServerError, time.Since(startTime), "", err)
+		return
+	}
 
+	// Return the response as JSON
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(trainedResp)
+
+	// Log the request
+	logRequest("trained", http.StatusOK, time.Since(startTime), "", nil)
 }
 
+// AllCryptos retrieves the list of all available cryptocurrencies and logs the request.
 func AllCryptos(w http.ResponseWriter, r *http.Request) {
+	startTime := time.Now()
 
 	resp, err := http.Get("http://backend-model:8000/cryptos")
-	utils.CheckError(err)
+	if err != nil {
+		utils.CheckError(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		logRequest("all_cryptos", http.StatusInternalServerError, time.Since(startTime), "", err)
+		return
+	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
-	utils.CheckError(err)
+	if err != nil {
+		utils.CheckError(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		logRequest("all_cryptos", http.StatusInternalServerError, time.Since(startTime), "", err)
+		return
+	}
 
 	var allCryptos models.AllCryptos
 	err = json.Unmarshal(body, &allCryptos)
-	utils.CheckError(err)
+	if err != nil {
+		utils.CheckError(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		logRequest("all_cryptos", http.StatusInternalServerError, time.Since(startTime), "", err)
+		return
+	}
 
+	// Return the response as JSON
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(allCryptos)
+
+	// Log the request
+	logRequest("all_cryptos", http.StatusOK, time.Since(startTime), "", nil)
 }
 
+// TestCrypto handles the test request and logs it.
 func TestCrypto(w http.ResponseWriter, r *http.Request) {
-	// Extract the crypto symbol from the query parameters
-	crypto := r.URL.Query().Get("crypto")
+	startTime := time.Now()
 
-    crypto = strings.TrimSpace(crypto)
+	crypto := r.URL.Query().Get("crypto")
+	crypto = strings.TrimSpace(crypto)
 
 	log.Printf("Sanitized crypto: %s", crypto)
 	if crypto == "" {
 		http.Error(w, "Missing crypto parameter", http.StatusBadRequest)
+		logRequest("test", http.StatusBadRequest, time.Since(startTime), "", nil)
 		return
 	}
 
-	// Make a request to the backend to fetch actual vs predicted prices
 	backendURL := "http://backend-model:8000/test/" + crypto
 	resp, err := http.Get(backendURL)
 	if err != nil {
 		log.Printf("Error calling backend model: %v\n", err)
 		http.Error(w, "Error calling backend model", http.StatusInternalServerError)
+		logRequest("test", http.StatusInternalServerError, time.Since(startTime), crypto, err)
 		return
 	}
 	defer resp.Body.Close()
 
-	// Read the response body
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Printf("Error reading backend response: %v\n", err)
 		http.Error(w, "Error reading backend response", http.StatusInternalServerError)
+		logRequest("test", http.StatusInternalServerError, time.Since(startTime), crypto, err)
 		return
 	}
 
-	// Unmarshal the response into the CryptoComparisonResponse struct
 	var comparisonResp models.TestPredicted
 	err = json.Unmarshal(body, &comparisonResp)
 	if err != nil {
 		log.Printf("Error unmarshalling backend response: %v\n", err)
 		http.Error(w, "Error processing backend response", http.StatusInternalServerError)
+		logRequest("test", http.StatusInternalServerError, time.Since(startTime), crypto, err)
 		return
 	}
 
 	// Return the response as JSON
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(comparisonResp)
+
+	// Log the request
+	logRequest("test", http.StatusOK, time.Since(startTime), crypto, nil)
 }

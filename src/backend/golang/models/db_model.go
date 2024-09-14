@@ -7,12 +7,15 @@ import (
 	)
 
 // Modelo da "base de dados"
-type DBModel struct {
-	ID          primitive.ObjectID `bson:"_id,omitempty"`
-	Crypto      string             `bson:"crypto"`
-	Predictions []float64          `bson:"predictions"`
-	Timestamp   time.Time          `bson:"timestamp"`
+type LogEntry struct {
+	ID             primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	Time           time.Time          `bson:"time" json:"time"`
+	RequestType    string             `bson:"request_type" json:"request_type"`
+	StatusCode     int                `bson:"status_code" json:"status_code"`
+	CompletionTime time.Duration      `bson:"completion_time" json:"completion_time"`
+	CryptoName     string             `bson:"crypto_name" json:"crypto_name"`
 }
+
 
 // DB represents the response structure for the client
 type DB struct {

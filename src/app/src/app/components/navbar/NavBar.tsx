@@ -11,9 +11,10 @@ const Navbar: FC = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const navItems = [
-    { label: 'TREINO', href: '/train' },
     { label: 'DASHBOARD', href: '/dashboard' },
+    { label: 'TREINO', href: '/train' },
     { label: 'TESTE', href: '/test' },
+    { label: "LOGS", href: '/logs' },
     { label: 'SOBRE', href: '/about' },
   ];
 

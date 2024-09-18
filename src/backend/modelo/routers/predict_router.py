@@ -53,12 +53,10 @@ async def train(request: TrainRequest):
 async def predict(crypto: str):
 
     try:
-        # Call the controller to handle prediction (7-day prediction)
         predictions = controller.predict(steps=7, crypto=crypto)
         print(predictions)
         print("antes do crypto")
         
-        # Convert numpy.float32 to standard Python float
         predictions = [float(p) for p in predictions]
 
         return PredictResponse(prediction=predictions, crypto=crypto)
@@ -68,7 +66,6 @@ async def predict(crypto: str):
 @router.get("/trained", response_model=TrainedResponse)
 async def trained():
     try:
-        # Call the controller to get the latest trained crypto
         crypto = controller.get_trained_crypto()
 
         return TrainedResponse(crypto=crypto)
@@ -78,7 +75,6 @@ async def trained():
 @router.get("/cryptos", response_model=CryptosResponse)
 async def cryptos():
     try:
-        # Call the controller to get all ever trained cryptos
         cryptos = controller.get_all_cryptos()
 
         return CryptosResponse(cryptos=cryptos)

@@ -10,8 +10,6 @@ from datetime import datetime, timedelta
 
 import os
 
-# Obs: Esse código está uma bizarrice, não pergunte como funciona eu sei no dia 12/09/2024, depois disso não vou saber mais nada mas a classe ficou daora
-
 # JSON QUE GUARDA OS CRYPTOS TREINADOS
 TRAINED_CRYPTOS_FILE = "trained_cryptos.json"
 
@@ -26,6 +24,12 @@ class CryptoPredictor:
         self.model = None
 
     def load_data(self, crypto: str, start_date: str, end_date: str):
+        '''
+        Método para carregar os dados de uma criptomoeda específica.
+        crypto: str - Nome da criptomoeda.
+        start_date: str - Data de início para carregar os dados.
+        end_date: str - Data de fim para carregar os dados.
+        '''
 
         try:
             start_date = datetime.strptime(start_date, "%Y-%m-%d").strftime("%Y-%m-%d")
@@ -38,11 +42,15 @@ class CryptoPredictor:
         if df.empty:
             raise ValueError(f"No data found for {crypto} from {start_date} to {end_date}")
         
-        df = df[['Open', 'High', 'Low', 'Close', 'Volume']]  # Selected columns
+        df = df[['Open', 'High', 'Low', 'Close', 'Volume']] 
         scaled_data = self.scaler.fit_transform(df['Close'].values.reshape(-1, 1))
         return scaled_data
 
     def create_sequences(self, data):
+        '''
+        Método para criar sequências de dados para treinamento.
+        data: np.array - Dados a serem transformados em sequências.
+        '''
         X, y = [], []
         for i in range(self.seq_length, len(data)):
             X.append(data[i - self.seq_length:i, 0])
@@ -50,6 +58,10 @@ class CryptoPredictor:
         return np.array(X), np.array(y)
 
     def build_model(self, input_shape):
+        '''
+        Método para construir o modelo LSTM com camada de atenção.
+        input_shape: tuple - Formato da entrada do modelo.
+        '''
         inputs = layers.Input(shape=input_shape)
         lstm_out = layers.LSTM(128, return_sequences=True)(inputs)
         attention_out = self.attention_block(lstm_out)
@@ -60,6 +72,10 @@ class CryptoPredictor:
         self.model.compile(optimizer='adam', loss='mean_squared_error', metrics=['mae'])
 
     def attention_block(self, inputs):
+        '''
+        Método para adicionar a camada de atenção ao modelo.
+        inputs: tensor - Entrada para a camada de atenção.
+        '''
         attention_weights = layers.Dense(1, activation='tanh')(inputs)
         attention_weights = layers.Flatten()(attention_weights)
         attention_weights = layers.Activation('softmax')(attention_weights)
@@ -69,8 +85,16 @@ class CryptoPredictor:
         return weighted_inputs
 
     def train_model(self, X_train, y_train, X_test, y_test, crypto: str, epochs: int=20, batch_size: int=32):
-        """Treina e salva o modelo se o mesmo ainda não foi treinado."""
-        
+        '''
+        Método para treinar o modelo com os dados de treinamento e teste.
+        X_train: np.array - Dados de treinamento.
+        y_train: np.array - Rótulos de treinamento.
+        X_test: np.array - Dados de teste.
+        y_test: np.array - Rótulos de teste.
+        crypto: str - Nome da criptomoeda.
+        epochs: int - Número de épocas para treinamento.
+        batch_size: int - Tamanho do lote para treinamento.
+        '''        
         trained_cryptos = self.load_trained_cryptos()
         if crypto in trained_cryptos and trained_cryptos[crypto]["trained"] == 1:
             raise ValueError(f"Model for {crypto} is already trained.")
@@ -85,8 +109,8 @@ class CryptoPredictor:
 
     def save_model(self, crypto: str):
         '''
-        Save the trained model and manage the last 5 trained models. 
-        The oldest model will still be kept in the JSON, but its trained status will be set to 0.
+        Salva o modelo treinado no arquivo JSON.
+        crypto: str - Nome da criptomoeda.
         '''
         model_filename = f"{crypto}-model.h5"
         model_path = os.path.join('.', model_filename)
@@ -119,7 +143,8 @@ class CryptoPredictor:
 
     def load_trained_cryptos(self):
         '''
-        Load the JSON file containing the trained cryptos.
+        Carrega o arquivo JSON que contém os modelos treinados.
+
         '''
         try:
             with open(TRAINED_CRYPTOS_FILE, 'r') as file:
@@ -129,7 +154,8 @@ class CryptoPredictor:
 
     def load_model(self, crypto: str):
         '''
-        Load the trained model for the specified cryptocurrency from the JSON file.
+        Carrega o modelo treinado para a criptomoeda especificada.
+        crypto: str - Nome da criptomoeda.
         '''
         trained_cryptos = self.load_trained_cryptos()
 
@@ -143,7 +169,9 @@ class CryptoPredictor:
 
     def predict_future_prices(self, data, steps):
         '''
-        Predict future prices based on the loaded model and data.
+        Prediz os preços futuros da criptomoeda.
+        data: np.array - Dados históricos da criptomoeda.
+        steps: int - Número de dias futuros a serem pred
         '''
         current_sequence = data[-self.seq_length:]
         future_predictions = []
@@ -159,7 +187,7 @@ class CryptoPredictor:
         
     def check_trained(self):
         '''
-        Check if there are any trained models and return the names of all trained cryptocurrencies as a comma-separated string.
+        Checa se a criptomoeda está treinada.
         '''
         trained_cryptos = self.load_trained_cryptos()
 
@@ -171,7 +199,7 @@ class CryptoPredictor:
     
     def get_all_cryptos(self):
         '''
-        Get all the cryptocurrencies from the JSON, with the status 0-1 according to what's in the JSON.
+        Pega todas as criptomoedas do JSON.
         '''
 
         trained_cryptos = self.load_trained_cryptos()
@@ -179,8 +207,8 @@ class CryptoPredictor:
     
     def test_crypto(self, crypto: str):
         '''
-        Fetch the actual price for 2 days ago and compare it with the predicted price.
-        If no data is available for that day, handle the case gracefully.
+        Testa a criptomoeda especificada.
+        crypto: str - Nome da criptomoeda.
         '''
         today = datetime.today()
         two_days_ago = today - timedelta(days=2)

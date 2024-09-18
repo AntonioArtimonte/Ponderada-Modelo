@@ -30,7 +30,6 @@ const MinimalButton = styled(Button)({
   },
 });
 
-// Animation for quotes in different positions
 const floatingQuoteAnimation = (initialX: number, initialY: number, endX: number, endY: number) => ({
   initial: { x: initialX, y: initialY, opacity: 0 },
   animate: {
@@ -40,7 +39,7 @@ const floatingQuoteAnimation = (initialX: number, initialY: number, endX: number
     transition: {
       duration: 10,
       repeat: Infinity,
-      repeatType: "reverse", // Makes it go back and forth
+      repeatType: "reverse" as "reverse", // Specify repeatType as one of the allowed strings
       ease: "easeInOut",
     },
   },
@@ -91,7 +90,7 @@ export default function Home() {
               initial="initial"
               animate="animate"
             >
-              <p className="text-xl font-semibold text-center">"O futuro do mercado cripto é previsível com a tecnologia certa."</p>
+              <p className="text-xl font-semibold text-center">&quot;O futuro do mercado cripto é previsível com a tecnologia certa.&quot;</p>
             </motion.div>
 
             <motion.div
@@ -100,7 +99,7 @@ export default function Home() {
               initial="initial"
               animate="animate"
             >
-              <p className="text-xl font-semibold text-center">"IA pode transformar sua estratégia de investimento."</p>
+              <p className="text-xl font-semibold text-center">&quot;IA pode transformar sua estratégia de investimento.&quot;</p>
             </motion.div>
 
             <motion.div
@@ -109,7 +108,7 @@ export default function Home() {
               initial="initial"
               animate="animate"
             >
-              <p className="text-xl font-semibold text-center">"O poder dos dados está na palma da sua mão."</p>
+              <p className="text-xl font-semibold text-center">&quot;O poder dos dados está na palma da sua mão.&quot;</p>
             </motion.div>
 
             <motion.div
@@ -118,12 +117,12 @@ export default function Home() {
               initial="initial"
               animate="animate"
             >
-              <p className="text-xl font-semibold text-center">"Preveja o mercado com precisão e confiança."</p>
+              <p className="text-xl font-semibold text-center">&quot;Preveja o mercado com precisão e confiança.&quot;</p>
             </motion.div>
           </section>
 
           {/* New Features Section */}
-          <section className="w-full bg-gray py-12">
+          <section className="w-full py-12">
             <div className="max-w-4xl mx-auto text-center">
               <motion.h2
                 className="text-3xl font-bold mb-6"

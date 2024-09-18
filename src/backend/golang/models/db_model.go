@@ -17,7 +17,7 @@ type LogEntry struct {
 }
 
 
-// DB represents the response structure for the client
+// Resposta do cliente
 type DB struct {
 	ID          string    `json:"id"`
 	Crypto      string    `json:"crypto"`
@@ -25,46 +25,51 @@ type DB struct {
 	Timestamp   time.Time `json:"timestamp"`
 }
 
-// CreateDB represents the request structure to insert into the database
+// Request que insere na DB
 type CreateDB struct {
 	Crypto      string    `json:"crypto"`
 	Predictions []float64 `json:"predictions"`
 	Timestamp   time.Time `json:"timestamp"`
 }
 
-// UpdateDB represents the request structure to update an existing record
+// Atualiza a DB
 type UpdateDB struct {
 	Crypto      string    `json:"crypto"`
 	Predictions []float64 `json:"predictions"`
 	Timestamp   time.Time `json:"timestamp"`
 }
 
-
+// Tipo de um modelo de request para treino
 type TrainRequest struct {
     Crypto    string `json:"crypto"`
     StartDate string `json:"start_date"`  
     EndDate   string `json:"end_date"`    
 }
 
+// Tipo de um modelo de resposta para treino
 type TrainResponse struct {
 	Message   string  `json:"message"`
 	TestLoss  *float64 `json:"test_loss"`
 	TestMae   *float64 `json:"test_mae"`
 }
 
+// Tipo de um modelo de request para predict
 type PredictResponse struct {
 	Prediction []float64 `json:"prediction"`
 	Crypto string `json:"crypto"`
 }
 
+// Tipo de um modelo de request para treinado
 type TrainedResp struct {
 	Crypto string `json:"crypto"`
 }
 
+// Tipo de modelo para todas as cryptos
 type AllCryptos struct {
     Cryptos map[string]int `json:"cryptos"` 
 }
 
+// Tipo de modelo para testar a predição
 type TestPredicted struct {
 	Crypto string `json:"crypto"`
 	Date string `json:"date"`

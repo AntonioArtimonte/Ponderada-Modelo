@@ -6,6 +6,12 @@ class ModelController:
         self.predictor = CryptoPredictor()
 
     def train(self, crypto: str, start_date: str, end_date: str):
+        '''
+        Treina o modelo para a criptomoeda especificada.
+        crypto: str - Nome da criptomoeda.
+        start_date: str - Data de início para treinamento.
+        end_date: str - Data de fim para treinamento.
+        '''
         scaled_data = self.predictor.load_data(crypto, start_date, end_date)
         X, y = self.predictor.create_sequences(scaled_data)
         X = X.reshape((X.shape[0], X.shape[1], 1))
@@ -20,6 +26,11 @@ class ModelController:
         return {"test_loss": test_loss, "test_mae": test_mae}
 
     def predict(self, steps: int, crypto: str):
+        '''
+        Prediz o valor futuro da criptomoeda especificada.
+        steps: int - Número de dias futuros a serem preditos.
+        crypto: str - Nome da criptomoeda.
+        '''
         print("entrou na função")
         latest_crypto = self.predictor.load_model(crypto)
         print(latest_crypto)
@@ -35,8 +46,10 @@ class ModelController:
         return predictions
     
     def get_trained_crypto(self, crypto: str):
-        print("daora em")
-
+        '''
+        Pega a lista de todas as criptomoedas treinadas e verifica se a criptomoeda especificada está na lista.
+        crypto: str - Nome da criptomoeda.
+        '''
         trained_crypto = self.predictor.check_trained()
 
         if trained_crypto:
@@ -48,6 +61,9 @@ class ModelController:
         return None
     
     def get_all_cryptos(self):
+        '''
+        Pega a lista de todas as criptomoedas treinadas.
+        '''
         raw_cryptos_data = self.predictor.load_trained_cryptos()  
 
         print(raw_cryptos_data) 
@@ -59,7 +75,8 @@ class ModelController:
     
     def test_crypto(self, crypto: str):
         '''
-        Compare the actual price of yesterday with the predicted price.
+        Compara o preço atual da criptomoeda com o preço predito.
+        crypto: str - Nome da criptomoeda.
         '''
         result = self.predictor.test_crypto(crypto)
         return {

@@ -13,16 +13,17 @@ func ApiHandlers() http.Handler {
 	router.Group(func(r chi.Router) {
 		r.Get("/db", controllers.GetDB)
 
-		// Crypto ones
+		// Crypto
 		r.Post("/train", controllers.TrainModel)
 		r.Post("/predict", controllers.PredictCrypto)
 
-		// Check trained crypto
+		// Checar crypto treinada
 		r.Get("/trained", controllers.TrainedCrypto)
 
-		// Get all ever trained cryptos
+		// Pegar todas as cryptos
 		r.Get("/cryptos", controllers.AllCryptos)
 
+		// Testas crypto
 		r.Get("/test", controllers.TestCrypto)
 	})
 

@@ -21,9 +21,8 @@ import (
 
 var rnd *renderer.Render = renderer.New()
 
-// LogEntry represents a log entry in the database
+// TODO: Arrumar o error aqui (Falta implementar)
 
-// Helper function to log requests
 func logRequest(requestType string, statusCode int, completionTime time.Duration, cryptoName string, err error) {
 	logEntry := models.LogEntry{
 		ID:             primitive.NewObjectID(),
@@ -35,14 +34,14 @@ func logRequest(requestType string, statusCode int, completionTime time.Duration
 	}
 
 
-	// Insert the logEntry into MongoDB
+
 	_, insertErr := config.Db.Collection("logs").InsertOne(context.TODO(), logEntry)
 	if insertErr != nil {
 		log.Printf("Error inserting log entry into MongoDB: %v\n", insertErr)
 	}
 }
 
-// GetDB retrieves all logs from the database.
+// GetDB pega todas as logs do DB
 func GetDB(w http.ResponseWriter, r *http.Request) {
 	var logs []models.LogEntry
 	filter := bson.D{}
@@ -73,7 +72,7 @@ func GetDB(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// TrainModel handles the training of the model and logs the request.
+// Treina o modelo
 func TrainModel(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now()
 
@@ -91,8 +90,6 @@ func TrainModel(w http.ResponseWriter, r *http.Request) {
 		logRequest("train", http.StatusBadRequest, time.Since(startTime), "", err)
 		return
 	}
-
-	// Sending a request to the FastAPI /train endpoint
 	resp, err := http.Post("http://backend-model:8000/train", "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -108,7 +105,6 @@ func TrainModel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Parse the response into TrainResponse struct
 	var trainResp models.TrainResponse
 	err = json.Unmarshal(body, &trainResp)
 	if err != nil {
@@ -117,15 +113,13 @@ func TrainModel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Respond with the result from the FastAPI train endpoint
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(trainResp)
 
-	// Log the request
 	logRequest("train", http.StatusOK, time.Since(startTime), "", nil)
 }
 
-// PredictCrypto handles the prediction request and logs it.
+// PredictCrypto faz a predição do modelo
 func PredictCrypto(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now()
 
@@ -163,15 +157,13 @@ func PredictCrypto(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Respond with the prediction result
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(predictResp)
 
-	// Log the request
 	logRequest("predict", http.StatusOK, time.Since(startTime), crypto, nil)
 }
 
-// TrainedCrypto retrieves the list of trained cryptocurrencies and logs the request.
+// Pega a lista de cryptomoedas treinadas
 func TrainedCrypto(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now()
 
@@ -201,15 +193,13 @@ func TrainedCrypto(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Return the response as JSON
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(trainedResp)
 
-	// Log the request
 	logRequest("trained", http.StatusOK, time.Since(startTime), "", nil)
 }
 
-// AllCryptos retrieves the list of all available cryptocurrencies and logs the request.
+// Pega a lista de todas as cryptomoedas
 func AllCryptos(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now()
 
@@ -239,15 +229,13 @@ func AllCryptos(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Return the response as JSON
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(allCryptos)
 
-	// Log the request
 	logRequest("all_cryptos", http.StatusOK, time.Since(startTime), "", nil)
 }
 
-// TestCrypto handles the test request and logs it.
+// Testa a crypto
 func TestCrypto(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now()
 
@@ -288,10 +276,8 @@ func TestCrypto(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Return the response as JSON
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(comparisonResp)
 
-	// Log the request
 	logRequest("test", http.StatusOK, time.Since(startTime), crypto, nil)
 }

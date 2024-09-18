@@ -13,12 +13,15 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body style={{ backgroundColor: '#FDE8D0' }} className={inter.className}>
+    <html lang="en" className="h-full">
+      <body style={{ backgroundColor: '#FDE8D0' }} className={`h-full flex flex-col ${inter.className}`}>
         <ClientOnlyNavbar />
-        <main>
-          {children}  
+        <main className="flex-grow">
+          {children}
         </main>
+        <footer className="py-10 w-full mt-auto">
+          <p className="text-center">© 2024 Crypto Predict | Todos os direitos reservados</p>
+        </footer>
       </body>
     </html>
   );

@@ -43,16 +43,10 @@ const Navbar: FC = () => {
           className="font-playfair text-[#3E2723] text-3xl"
         >
           <CurrencyExchangeIcon className="me-3 mb-1"/>
-          Xablau
+          Crypto
         </Typography>
         <NavMenu items={navItems} />
         <Box className="flex space-x-4 items-center">
-          <IconButton onClick={toggleSearch}>
-            <Search className="text-[#3E2723]" />
-          </IconButton>
-          <IconButton>
-            <Person className="text-[#3E2723]" />
-          </IconButton>
         </Box>
       </Toolbar>
 

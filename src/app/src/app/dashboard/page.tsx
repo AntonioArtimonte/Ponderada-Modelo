@@ -3,7 +3,7 @@
 import { FC } from 'react';
 import Dashboard from '../components/dashboard/Dashboard';
 
-const Treino: FC = () => {
+const DashboardPage: FC = () => {
   return (
     <div className="max-w-screen-lg mx-auto p-4">
       <Dashboard />
@@ -11,4 +11,4 @@ const Treino: FC = () => {
   );
 };
 
-export default Treino;
+export default DashboardPage;

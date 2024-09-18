@@ -1,32 +1,33 @@
 version: "3.8"
 
 services:
-  # Frontend service (Next.js)
+  # Serviço Front
   frontend:
     build:
-      context: ./src/app # Path to the frontend Dockerfile
+      context: ./src/app 
     ports:
       - "3000:3000"
     environment:
       - ENV=development
     depends_on:
-      - backend-golang # Ensure backend is up before the frontend starts
+      - backend-golang
     networks:
       - app-network
 
-  # Backend service (Go app)
+  # Serviço Backend
   backend-golang:
     build:
-      context: ./src/backend/golang/ # Path to the backend Dockerfile
+      context: ./src/backend/golang/
     ports:
       - "9000:9000"
     environment:
-      - MONGO_URI=mongodb://db:27017/golang-db # Correct MongoDB URI (using 'db' service name)
+      - MONGO_URI=mongodb://db:27017/golang-db
     depends_on:
-      - db # Ensure MongoDB is up before the backend starts
+      - db 
     networks:
       - app-network
 
+  # Serviço Backend Modelo
   backend-model:
     build:
       context: ./src/backend/modelo/
@@ -37,13 +38,13 @@ services:
     networks:
       - app-network
 
-  # MongoDB service
+  # Serviço Banco de Dados
   db:
     image: mongo:latest
     ports:
-      - "27017:27017" # Expose MongoDB on the default port
+      - "27017:27017"
     volumes:
-      - ./src/backend/dependencies/mongo/data/db:/data/db # Persist MongoDB data
+      - ./src/backend/dependencies/mongo/data/db:/data/db
     environment:
       - MONGO_INITDB_DATABASE=golang-db
     networks:
@@ -51,4 +52,4 @@ services:
 
 networks:
   app-network:
-    driver: bridge # Use bridge network for communication between services
+    driver: bridge # Usar bridge para comunicação entre os serviços

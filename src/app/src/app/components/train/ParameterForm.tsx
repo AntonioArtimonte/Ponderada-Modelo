@@ -31,13 +31,13 @@ const ParameterForm: FC<ParameterFormProps> = ({ onFormValidation }) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.2 }}
     >
-      <Box className="bg-[#FAF3E0] p-6 rounded-xl shadow-lg mb-6">
+      <Box className="!bg-[#FAF3E0] !p-6 !rounded-xl !shadow-lg !mb-6">
         <TextField
           label="Data de Início"
           type="date"
           fullWidth
           InputLabelProps={{ shrink: true }}
-          className="mb-4"
+          className="!mb-4"
           value={startDate}
           onChange={(e) => setStartDate(e.target.value)}
         />
@@ -55,7 +55,7 @@ const ParameterForm: FC<ParameterFormProps> = ({ onFormValidation }) => {
                       label="Criptomoeda"
                       placeholder="e.g., BTC-USD, ETH-USD"
                       InputLabelProps={{ shrink: true }}
-                      className="mb-4"
+                      className="!mb-4"
                       InputProps={{
                         ...params.InputProps,
                         style: { backgroundColor: '#FAF3E0' },
@@ -76,7 +76,7 @@ const ParameterForm: FC<ParameterFormProps> = ({ onFormValidation }) => {
           type="date"
           fullWidth
           InputLabelProps={{ shrink: true }}
-          className="mb-4"
+          className="!mb-4"
           value={endDate}
           onChange={(e) => setEndDate(e.target.value)}
         />

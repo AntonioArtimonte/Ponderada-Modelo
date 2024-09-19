@@ -1,4 +1,4 @@
-"use client";  // Ensure this is present
+"use client";
 
 import { FC, useState } from 'react';
 import { AppBar, Toolbar, IconButton, Typography, Box } from '@mui/material';
@@ -37,16 +37,16 @@ const Navbar: FC = () => {
         backgroundColor: '#FAF3E0',
       }}
     >
-      <Toolbar className="flex justify-between">
+      <Toolbar className="!flex !justify-between">
         <Typography
           variant="h6"
-          className="font-playfair text-[#3E2723] text-3xl"
+          className="!font-playfair !text-[#3E2723] !text-3xl"
         >
-          <CurrencyExchangeIcon className="me-3 mb-1"/>
+          <CurrencyExchangeIcon className="!me-3 !mb-1"/>
           Crypto
         </Typography>
         <NavMenu items={navItems} />
-        <Box className="flex space-x-4 items-center">
+        <Box className="!flex !space-x-4 !items-center">
         </Box>
       </Toolbar>
 

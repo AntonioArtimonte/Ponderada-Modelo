@@ -1,47 +1,37 @@
----
-sidebar_position: 1
----
+# 📊 Finanças Next JS - Documentação
 
-# Tutorial Intro
+## Introdução
 
-Let's discover **Docusaurus in less than 5 minutes**.
+Bem-vindo à documentação do **Crypto Price Prediction App**, uma aplicação fullstack projetada para prever preços de criptomoedas, combinando técnicas avançadas de **inteligência artificial** e **aprendizado de máquina** com uma arquitetura escalável e eficiente.
 
-## Getting Started
+### Objetivo
 
-Get started by **creating a new site**.
+O principal objetivo desta aplicação é fornecer previsões precisas de preços de criptomoedas, auxiliando investidores e analistas a tomar decisões informadas sobre o mercado de ativos digitais. O sistema prevê o comportamento futuro das criptomoedas com base em dados históricos e tendências de mercado, utilizando modelos de machine learning treinados.
 
-Or **try Docusaurus immediately** with **[docusaurus.new](https://docusaurus.new)**.
+### Arquitetura
 
-### What you'll need
+A arquitetura do projeto foi cuidadosamente projetada para garantir alta performance, modularidade e fácil manutenção. Ela utiliza uma combinação de tecnologias modernas, cada uma responsável por uma parte essencial do sistema:
 
-- [Node.js](https://nodejs.org/en/download/) version 18.0 or above:
-  - When installing Node.js, you are recommended to check all checkboxes related to dependencies.
+- **Frontend**: Desenvolvido com **Next.js**, uma das bibliotecas mais populares de React, o frontend proporciona uma interface de usuário **intuitiva** e **dinâmica**, garantindo uma experiência fluida para o usuário final. O Next.js também facilita a renderização no lado do servidor, melhorando a performance e o SEO da aplicação.
+  
+- **Backend**: O backend principal foi construído em **Golang**, que é reconhecido por sua **alta performance** e **eficiência** no tratamento de grandes volumes de dados e solicitações simultâneas. O backend é responsável por gerenciar a lógica de negócios, validações e o fluxo de dados entre o frontend e os serviços de machine learning.
 
-## Generate a new site
+- **Serviço de Previsão (Machine Learning)**: O serviço de previsão é implementado utilizando **FastAPI**, um framework moderno de alta performance para APIs em Python. Este serviço é dedicado a lidar com as requisições de previsão, recebendo os dados históricos das criptomoedas e retornando previsões com base em modelos de aprendizado de máquina treinados.
 
-Generate a new Docusaurus site using the **classic template**.
+- **Banco de Dados**: Utilizamos **MongoDB** como banco de dados principal para armazenar os dados históricos de preços e as previsões geradas pelo modelo. O MongoDB foi escolhido por sua **flexibilidade** em trabalhar com grandes volumes de dados não estruturados e sua capacidade de **escalar horizontalmente** conforme a demanda da aplicação cresce.
 
-The classic template will automatically be added to your project after you run the command:
+### Fluxo de Funcionamento
 
-```bash
-npm init docusaurus@latest my-website classic
-```
+1. O usuário acessa a interface frontend desenvolvida em Next.js e escolhe a criptomoeda para a qual deseja obter previsões.
+2. O frontend envia uma solicitação ao backend em Golang, que valida os dados de entrada e os envia para o serviço de machine learning.
+3. O serviço de previsão, utilizando FastAPI, processa os dados históricos armazenados no MongoDB e aplica o modelo de machine learning para gerar a previsão de preço.
+4. As previsões são retornadas ao backend em Golang, que as repassa ao frontend para exibição ao usuário.
+5. As previsões são armazenadas no MongoDB para consultas futuras e análises.
 
-You can type this command into Command Prompt, Powershell, Terminal, or any other integrated terminal of your code editor.
+### Benefícios
 
-The command also installs all necessary dependencies you need to run Docusaurus.
+- **Previsões em Tempo Real**: O sistema é capaz de fornecer previsões em tempo real de múltiplas criptomoedas simultaneamente.
+- **Escalabilidade**: A arquitetura modular permite fácil escalabilidade horizontal, suportando um aumento no volume de dados e usuários sem comprometer a performance.
+- **Alto Desempenho**: Utilizando Golang e FastAPI, conseguimos otimizar o tempo de resposta para previsões complexas, garantindo uma experiência de usuário rápida e eficiente.
 
-## Start your site
-
-Run the development server:
-
-```bash
-cd my-website
-npm run start
-```
-
-The `cd` command changes the directory you're working with. In order to work with your newly created Docusaurus site, you'll need to navigate the terminal there.
-
-The `npm run start` command builds your website locally and serves it through a development server, ready for you to view at http://localhost:3000/.
-
-Open `docs/intro.md` (this page) and edit some lines: the site **reloads automatically** and displays your changes.
+Este sistema foi desenvolvido com o objetivo de ser uma ferramenta poderosa e acessível para qualquer pessoa interessada no mercado de criptomoedas, desde investidores iniciantes até traders profissionais.

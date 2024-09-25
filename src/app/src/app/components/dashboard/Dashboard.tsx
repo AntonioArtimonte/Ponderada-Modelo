@@ -18,7 +18,6 @@ const Dashboard = () => {
 
   const fetchStockData = async (stock: string) => {
     try {
-      // Use GET request with the query parameter for crypto
       const response = await fetch(`http://localhost:9000/api/predict?crypto=${stock}`, {
         method: "POST",
         headers: {

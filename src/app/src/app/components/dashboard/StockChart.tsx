@@ -11,7 +11,7 @@ interface PredictionData {
 }
 
 interface StockChartProps {
-  stock: string | null;  // The selected stock symbol
+  stock: string | null; 
 }
 
 const StockChart: FC<StockChartProps> = ({ stock }) => {
@@ -19,7 +19,7 @@ const StockChart: FC<StockChartProps> = ({ stock }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!stock) return;  // Don't fetch predictions if no stock is selected
+    if (!stock) return; 
 
     const fetchPredictions = async (stock: string) => {
       try {
@@ -53,6 +53,11 @@ const StockChart: FC<StockChartProps> = ({ stock }) => {
     fetchPredictions(stock);
   }, [stock]); 
 
+  const minPrice = Math.min(...predictions.map(p => p.close))
+  const maxPrice = Math.max(...predictions.map(p => p.close))
+
+  const yAxisDomain = [minPrice - 100, maxPrice + 100];
+
   if (loading) {
     return <p>Loading...</p>;
   }
@@ -70,7 +75,7 @@ const StockChart: FC<StockChartProps> = ({ stock }) => {
       <ResponsiveContainer width="100%" height={300}>
         <LineChart data={predictions}>
           <XAxis dataKey="date" />
-          <YAxis />
+          <YAxis domain={yAxisDomain}/>
           <Tooltip />
           <CartesianGrid stroke="#eee" strokeDasharray="5 5" />
           <Line type="monotone" dataKey="close" stroke="#3E2723" />

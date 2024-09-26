@@ -14,11 +14,12 @@ interface StockData {
 
 const StockSelector: FC<StockSelectorProps> = ({ onChange }) => {
   const [stocks, setStocks] = useState<StockData[]>([]);
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL
 
   useEffect(() => {
     const fetchStocks = async () => {
       try {
-        const response = await fetch("http://localhost:9000/api/cryptos");
+        const response = await fetch(`${apiUrl}/api/cryptos`);
         const data = await response.json();
         
         const transformedData: StockData[] = Object.keys(data.cryptos).map((key) => ({

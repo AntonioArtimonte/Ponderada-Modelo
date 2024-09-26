@@ -4,11 +4,11 @@ services:
   # Serviço Front
   frontend:
     build:
-      context: ./src/app 
+      context: ./src/app
     ports:
       - "3000:3000"
-    environment:
-      - ENV=development
+    env_file:
+      - .env 
     depends_on:
       - backend-golang
     networks:
@@ -20,19 +20,20 @@ services:
       context: ./src/backend/golang/
     ports:
       - "9000:9000"
-    environment:
-      - MONGO_URI=mongodb://db:27017/golang-db
+    env_file:
+      - .env 
     depends_on:
       - db 
     networks:
       - app-network
 
-  # Serviço Backend Modelo
   backend-model:
     build:
       context: ./src/backend/modelo/
     ports:
       - "8000:8000"
+    env_file:
+      - .env 
     depends_on:
       - db
     networks:
@@ -52,4 +53,4 @@ services:
 
 networks:
   app-network:
-    driver: bridge # Usar bridge para comunicação entre os serviços
+    driver: bridge

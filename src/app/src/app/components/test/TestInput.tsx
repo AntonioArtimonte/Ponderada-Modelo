@@ -17,11 +17,12 @@ const TestInput: FC<TestInputProps> = ({ onTest }) => {
   const [stocks, setStocks] = useState<StockData[]>([]);
   const [suggestions, setSuggestions] = useState<StockData[]>([]);
   const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL
 
   useEffect(() => {
     const fetchStocks = async () => {
       try {
-        const response = await fetch("http://localhost:9000/api/cryptos");
+        const response = await fetch(`${apiUrl}/api/cryptos`);
         const data = await response.json();
         
         const transformedData: StockData[] = Object.keys(data.cryptos).map((key) => ({

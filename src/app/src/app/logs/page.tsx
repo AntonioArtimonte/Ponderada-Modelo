@@ -12,9 +12,10 @@ import { Log } from '../components/log/Log';
 const LogsPage = async () => {
   let logs: Log[] = [];
   let error: string | null = null;
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL
 
   try {
-    const res = await fetch(`http://localhost:9000/api/db`, {
+    const res = await fetch(`${apiUrl}/api/db`, {
     });
     if (!res.ok) {
       throw new Error(`Failed to fetch logs: ${res.status} ${res.statusText}`);

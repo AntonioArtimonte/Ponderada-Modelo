@@ -4,7 +4,6 @@ import { FC, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
-// Define the shape of the prediction data
 interface PredictionData {
   date: string;
   close: number;
@@ -17,13 +16,14 @@ interface StockChartProps {
 const StockChart: FC<StockChartProps> = ({ stock }) => {
   const [predictions, setPredictions] = useState<PredictionData[]>([]);
   const [loading, setLoading] = useState(true);
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL
 
   useEffect(() => {
     if (!stock) return; 
 
     const fetchPredictions = async (stock: string) => {
       try {
-        const response = await fetch(`http://localhost:9000/api/predict?crypto=${stock}`, {
+        const response = await fetch(`${apiUrl}/api/predict?crypto=${stock}`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

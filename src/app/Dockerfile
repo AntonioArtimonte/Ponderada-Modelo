@@ -4,6 +4,9 @@ FROM node:18-alpine
 # Set the working directory inside the container
 WORKDIR /app
 
+# Set environment variables (replace with your actual variables)
+ENV NEXT_PUBLIC_API_URL=http://localhost:9000
+
 # Copy package.json and package-lock.json
 COPY package.json package-lock.json ./
 

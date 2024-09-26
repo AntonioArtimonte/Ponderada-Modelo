@@ -29,6 +29,7 @@ const Treino: FC = () => {
     start_date: '',
     end_date: ''
   });
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL
 
   const handleFormValidation = useCallback(
     (isValid: boolean, data: TrainRequest) => {
@@ -43,7 +44,7 @@ const Treino: FC = () => {
     setIsTrainingCompleted(false);
 
     try {
-      const response = await fetch('http://localhost:9000/api/train', {
+      const response = await fetch(`${apiUrl}/api/train`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -15,10 +15,15 @@ interface StockData {
 const Dashboard = () => {
   const [selectedStock, setSelectedStock] = useState<string | null>(null);
   const [stockData, setStockData] = useState<StockData | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
+  console.log(apiUrl)
 
   const fetchStockData = async (stock: string) => {
     try {
-      const response = await fetch(`http://localhost:9000/api/predict?crypto=${stock}`, {
+      setError(null); // Reset error state
+      const response = await fetch(`${apiUrl}/api/predict?crypto=${stock}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -32,9 +37,12 @@ const Dashboard = () => {
       const data = await response.json();
 
       const predictions = data.prediction;
+      if (!Array.isArray(predictions) || predictions.length === 0) {
+        throw new Error("Invalid predictions data");
+      }
 
       const weeklyAverage =
-        predictions.reduce((sum: number, value: number) => sum + value, 0) / 7;
+        predictions.slice(-7).reduce((sum: number, value: number) => sum + value, 0) / 7;
 
       const dailyClose = predictions[predictions.length - 1];
 
@@ -45,6 +53,7 @@ const Dashboard = () => {
       });
     } catch (error) {
       console.error("Error fetching stock data:", error);
+      setError("An error occurred while fetching stock data.");
     }
   };
 
@@ -64,6 +73,7 @@ const Dashboard = () => {
         Dashboard de Ações
       </h1>
       <StockSelector onChange={handleStockChange} />
+      {error && <p className="text-red-500">{error}</p>}
       {selectedStock && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}

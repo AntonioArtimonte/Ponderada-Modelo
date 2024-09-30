@@ -23,7 +23,7 @@ Bem-vindo ao **Projeto de Previsão de Preços de Criptomoedas**! Este projeto v
 
 Este projeto tem como objetivo principal fornecer uma ferramenta eficiente para prever os preços futuros de criptomoedas, auxiliando investidores e entusiastas a tomar decisões informadas. A aplicação combina tecnologias robustas como **Golang** para o backend principal, **FastAPI** para operações de Machine Learning, e **Next.js** com **React** para um frontend dinâmico e responsivo. **Docker** é utilizado para garantir a consistência do ambiente de desenvolvimento e facilitar o deployment.
 
-É possível acessar está aplicação "deployada" no seguinte link: [Ponderada-Modelo]()
+É possível acessar está aplicação "deployada" no seguinte link: [Ponderada-Modelo](132.226.166.126)
 
 ---
 

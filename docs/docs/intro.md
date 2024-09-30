@@ -8,6 +8,8 @@ slug: /
 
 Bem-vindo à documentação do projeto de previsão de preços de criptomoedas. Este guia abrange todas as partes do sistema, incluindo os backends em Golang e FastAPI, o modelo de Machine Learning utilizado, o funcionamento do frontend, a configuração do Docker e as instruções para rodar a aplicação. Este documento destina-se a desenvolvedores, colaboradores e interessados que desejam entender ou contribuir para o projeto.
 
+É possível acessar o site "deployado" no seguinte endereço: [Ponderada-Modelo](132.226.166.126)
+
 ---
 
 # Índice

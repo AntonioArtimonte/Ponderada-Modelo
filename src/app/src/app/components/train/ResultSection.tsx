@@ -2,7 +2,7 @@ import { FC } from 'react';
 import { Typography, Box } from '@mui/material';
 import { motion } from 'framer-motion';
 
-interface  ResultsSectionProps {
+interface ResultsSectionProps {
   results: {
     message: string;
     test_loss?: number;
@@ -26,14 +26,17 @@ const ResultsSection: FC<ResultsSectionProps> = ({ results }) => {
         <Typography variant="body1" className="text-[#5A473D] mb-2">
           Treino: {results.message}
         </Typography>
-        <Typography variant="body1" className="text-[#5A473D] mb-2">
-          Test Loss: {results.test_loss?.toFixed(4)}%
-        </Typography>
-        <Typography variant="body1" className="text-[#5A473D] mb-2">
-          Test Mae: {results.test_mae?.toFixed(4)}%
-        </Typography>
+        {results.test_loss !== undefined && (
+          <Typography variant="body1" className="text-[#5A473D] mb-2">
+            Test Loss: {results.test_loss.toFixed(4)}
+          </Typography>
+        )}
+        {results.test_mae !== undefined && (
+          <Typography variant="body1" className="text-[#5A473D] mb-2">
+            Test MAE: {results.test_mae.toFixed(4)}
+          </Typography>
+        )}
       </Box>
-
     </motion.div>
   );
 };

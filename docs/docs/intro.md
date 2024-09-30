@@ -1,3 +1,9 @@
+---
+title: Xablau arrombado
+sidebar_position: 1
+slug: /
+---
+
 # 📊 Finanças Next JS - Documentação
 
 ## Introdução

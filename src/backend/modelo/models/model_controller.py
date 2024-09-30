@@ -5,12 +5,14 @@ class ModelController:
     def __init__(self):
         self.predictor = CryptoPredictor()
 
-    def train(self, crypto: str, start_date: str, end_date: str):
+    def train(self, crypto: str, start_date: str, end_date: str, overwrite: bool = False):
         '''
         Treina o modelo para a criptomoeda especificada.
+
         crypto: str - Nome da criptomoeda.
         start_date: str - Data de início para treinamento.
         end_date: str - Data de fim para treinamento.
+        overwrite: bool - Flag que determina se o modelo existente deveria ser "overwrited"
         '''
         scaled_data = self.predictor.load_data(crypto, start_date, end_date)
         X, y = self.predictor.create_sequences(scaled_data)
@@ -21,7 +23,7 @@ class ModelController:
         y_train, y_test = y[:split], y[split:]
 
         self.predictor.build_model((X_train.shape[1], 1))
-        test_loss, test_mae = self.predictor.train_model(X_train, y_train, X_test, y_test, crypto)
+        test_loss, test_mae = self.predictor.train_model(X_train, y_train, X_test, y_test, crypto, overwrite=overwrite)
 
         return {"test_loss": test_loss, "test_mae": test_mae}
 

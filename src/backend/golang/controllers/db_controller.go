@@ -119,6 +119,64 @@ func TrainModel(w http.ResponseWriter, r *http.Request) {
 	logRequest("train", http.StatusOK, time.Since(startTime), "", nil)
 }
 
+func RetrainModel(w http.ResponseWriter, r *http.Request) {
+	startTime := time.Now()
+
+	var request models.TrainRequest
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		logRequest("retrain", http.StatusBadRequest, time.Since(startTime), "", err)
+		return
+	}
+
+	requestMap := map[string]interface{}{
+		"crypto": request.Crypto,
+		"start_date": request.StartDate,
+		"end_date": request.EndDate,
+		"overwrite": request.Overwrite,
+	}
+
+	jsonData, err := json.Marshal(requestMap)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		logRequest("retrain", http.StatusBadRequest, time.Since(startTime), "", err)
+		return
+	}
+
+	resp, err := http.Post("http://backend-model:8000/retrain", "application/json", bytes.NewBuffer(jsonData))
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		logRequest("retrain", http.StatusInternalServerError, time.Since(startTime), "", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		logRequest("retrain", http.StatusInternalServerError, time.Since(startTime), "", err)
+		return
+	}
+
+	var trainResp models.TrainResponse
+	err = json.Unmarshal(body, &trainResp)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		logRequest("retrain", http.StatusInternalServerError, time.Since(startTime), "", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(trainResp)
+
+	logRequest("retrain", http.StatusOK, time.Since(startTime), "", nil)
+}
+
+
 // PredictCrypto faz a predição do modelo
 func PredictCrypto(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now()

@@ -35,6 +35,11 @@ class TestResponse(BaseModel):
     actual_price: float
     predicted_price: float
 
+class RetrainResponse(BaseModel):
+    test_loss: Optional[float] = None
+    test_mae: Optional[float] = None
+    message: str
+
 # Endpoint treino modelo
 @router.post("/train", response_model=TrainResponse)
 async def train(request: TrainRequest):
@@ -47,6 +52,23 @@ async def train(request: TrainRequest):
         return TrainResponse(message=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+# Endpoint retreino modelo
+@router.post("/retrain", response_model=RetrainResponse)
+async def retrain(request: TrainRequest):
+    try:
+        result = controller.train(request.crypto, request.start_date, request.end_date, overwrite=True)
+
+        return RetrainResponse(
+            test_loss=result.get("test_loss"),
+            test_mae=result.get("test_mae"),
+            message="Model retrained successfully."
+        )
+    
+    except ValueError as e:
+        return RetrainResponse(message=str(e))
+    except Exception as e:
+        return RetrainResponse(message=str(e))
 
 # Endpoint predizer valor da criptomoeda
 @router.post("/predict/{crypto}", response_model=PredictResponse)

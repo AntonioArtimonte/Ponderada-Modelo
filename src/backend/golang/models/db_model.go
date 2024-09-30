@@ -44,6 +44,7 @@ type TrainRequest struct {
     Crypto    string `json:"crypto"`
     StartDate string `json:"start_date"`  
     EndDate   string `json:"end_date"`    
+	Overwrite bool `json:"overwrite,omitempty`
 }
 
 // Tipo de um modelo de resposta para treino

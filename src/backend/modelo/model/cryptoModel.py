@@ -84,9 +84,10 @@ class CryptoPredictor:
         weighted_inputs = layers.Multiply()([inputs, attention_weights])
         return weighted_inputs
 
-    def train_model(self, X_train, y_train, X_test, y_test, crypto: str, epochs: int=20, batch_size: int=32):
+    def train_model(self, X_train, y_train, X_test, y_test, crypto: str, epochs: int=20, batch_size: int=32, overwrite: bool = False):
         '''
         Método para treinar o modelo com os dados de treinamento e teste.
+
         X_train: np.array - Dados de treinamento.
         y_train: np.array - Rótulos de treinamento.
         X_test: np.array - Dados de teste.
@@ -94,23 +95,33 @@ class CryptoPredictor:
         crypto: str - Nome da criptomoeda.
         epochs: int - Número de épocas para treinamento.
         batch_size: int - Tamanho do lote para treinamento.
+        overwrite: bool - Flag que determina se o modelo deve ser "overwrited"
         '''        
         trained_cryptos = self.load_trained_cryptos()
-        if crypto in trained_cryptos and trained_cryptos[crypto]["trained"] == 1:
+        if crypto in trained_cryptos and trained_cryptos[crypto]["trained"] == 1 and not overwrite:
             raise ValueError(f"Model for {crypto} is already trained.")
 
         early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
-        history = self.model.fit(X_train, y_train, epochs=epochs, batch_size=batch_size, validation_data=(X_test, y_test), callbacks=[early_stopping])
+        history = self.model.fit(
+            X_train, y_train, 
+            epochs=epochs, 
+            batch_size=batch_size, 
+            validation_data=(X_test, y_test), 
+            callbacks=[early_stopping]
+        )
         test_loss, test_mae = self.model.evaluate(X_test, y_test)
 
-        self.save_model(crypto)
+        print("treino e vai salvar")
+        self.save_model(crypto, overwrite=overwrite)
         return test_loss, test_mae
 
 
-    def save_model(self, crypto: str):
+    def save_model(self, crypto: str, overwrite: bool = False):
         '''
         Salva o modelo treinado no arquivo JSON.
+
         crypto: str - Nome da criptomoeda.
+        overwrite: bool - Flag que determina se modelo deve ser "overwrited"
         '''
         model_filename = f"{crypto}-model.h5"
         model_path = os.path.join('.', model_filename)
@@ -119,20 +130,25 @@ class CryptoPredictor:
 
         trained_cryptos = self.load_trained_cryptos()
 
-        if "models" not in trained_cryptos:
-            trained_cryptos["models"] = []
-        
-        trained_cryptos["models"].append(model_filename)
+        if overwrite:
+            trained_cryptos["models"] = [m for m in trained_cryptos.get("models", []) if m != model_filename]
+        else:
+            print("to no else filhao")
+            if "models" not in trained_cryptos:
+                trained_cryptos["models"] = []
 
-        if len(trained_cryptos["models"]) > MAX_MODELS:
-            oldest_model = trained_cryptos["models"][0] 
+            trained_cryptos["models"].append(model_filename)
 
-            for crypto_name, crypto_info in trained_cryptos.items():
-                if isinstance(crypto_info, dict) and crypto_info.get("model_path") == os.path.join('.', oldest_model):
-                    trained_cryptos[crypto_name]["trained"] = 0
-                    break
-            
-            trained_cryptos["models"].pop(0)
+            # Corrected parentheses placement
+            if len(trained_cryptos["models"]) > MAX_MODELS:
+                oldest_model = trained_cryptos["models"].pop(0)
+                
+                for crypto_name, crypto_info in trained_cryptos.items():
+                    if isinstance(crypto_info, dict) and crypto_info.get("model_path") == os.path.join('.', oldest_model):
+                        trained_cryptos[crypto_name]["trained"] = 0
+                        break
+
+        print("Fudeu aqui")
 
         trained_cryptos[crypto] = {"trained": 1, "model_path": model_path}
 

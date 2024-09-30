@@ -16,7 +16,7 @@ interface StockChartProps {
 const StockChart: FC<StockChartProps> = ({ stock }) => {
   const [predictions, setPredictions] = useState<PredictionData[]>([]);
   const [loading, setLoading] = useState(true);
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
   useEffect(() => {
     if (!stock) return; 
@@ -31,6 +31,9 @@ const StockChart: FC<StockChartProps> = ({ stock }) => {
         });
         const data = await response.json();
 
+        if (!data.prediction || !Array.isArray(data.prediction)) {
+          throw new Error("Invalid prediction data received from the backend.");
+        }
 
         const processedData: PredictionData[] = data.prediction.map((price: number, index: number) => {
           const date = new Date(); 
@@ -38,7 +41,7 @@ const StockChart: FC<StockChartProps> = ({ stock }) => {
 
           return {
             date: date.toLocaleDateString("en-US"), 
-            close: price,
+            close: Math.floor(price), 
           };
         });
 
@@ -46,20 +49,52 @@ const StockChart: FC<StockChartProps> = ({ stock }) => {
         setLoading(false);
       } catch (error) {
         console.error("Failed to fetch predictions:", error);
+        setPredictions([]); 
         setLoading(false);
       }
     };
 
     fetchPredictions(stock);
-  }, [stock]); 
+  }, [stock, apiUrl]); 
 
-  const minPrice = Math.min(...predictions.map(p => p.close))
-  const maxPrice = Math.max(...predictions.map(p => p.close))
+  // Calculate min and max prices with dynamic padding
+  const calculateYAxisDomain = (data: PredictionData[]) => {
+    if (data.length === 0) {
+      // Default Y-axis domain if no data is available
+      return [0, 100];
+    }
 
-  const yAxisDomain = [minPrice - 100, maxPrice + 100];
+    const prices = data.map(p => p.close);
+    let minPrice = Math.min(...prices);
+    let maxPrice = Math.max(...prices);
+
+    const range = maxPrice - minPrice;
+    let padding = range * 0.1;
+
+    if (range === 0) {
+      
+      padding = maxPrice * 0.1 || 10; 
+    }
+
+    minPrice = minPrice - padding > 0 ? minPrice - padding : 0;
+    maxPrice = maxPrice + padding;
+
+    return [minPrice, maxPrice];
+  };
+
+  const yAxisDomain = calculateYAxisDomain(predictions);
 
   if (loading) {
-    return <p>Loading...</p>;
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className="text-center my-6"
+      >
+        <p>Loading...</p>
+      </motion.div>
+    );
   }
 
   return (
@@ -72,15 +107,19 @@ const StockChart: FC<StockChartProps> = ({ stock }) => {
       <h2 className="text-xl font-semibold text-[#3E2723] mb-4">
         Previsão de Preços - {predictions.length > 0 && stock}
       </h2>
-      <ResponsiveContainer width="100%" height={300}>
-        <LineChart data={predictions}>
-          <XAxis dataKey="date" />
-          <YAxis domain={yAxisDomain}/>
-          <Tooltip />
-          <CartesianGrid stroke="#eee" strokeDasharray="5 5" />
-          <Line type="monotone" dataKey="close" stroke="#3E2723" />
-        </LineChart>
-      </ResponsiveContainer>
+      {predictions.length === 0 ? (
+        <p className="text-[#5A473D]">Nenhuma previsão disponível para esta criptomoeda.</p>
+      ) : (
+        <ResponsiveContainer width="100%" height={300}>
+          <LineChart data={predictions}>
+            <XAxis dataKey="date" />
+            <YAxis domain={yAxisDomain} />
+            <Tooltip />
+            <CartesianGrid stroke="#eee" strokeDasharray="5 5" />
+            <Line type="monotone" dataKey="close" stroke="#3E2723" />
+          </LineChart>
+        </ResponsiveContainer>
+      )}
     </motion.div>
   );
 };

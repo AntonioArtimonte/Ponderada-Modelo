@@ -67,14 +67,14 @@ Optamos por utilizar o MongoDB exclusivamente para o armazenamento de logs devid
 
 ### Visão Geral da Configuração
 
-A utilização do Docker no projeto visa garantir que todos os componentes da aplicação funcionem de maneira consistente em diferentes ambientes, facilitando o deployment e a escalabilidade. A configuração envolve a criação de containers para o frontend, backend Golang, backend FastAPI e serviços auxiliares como o Redis.
+A utilização do Docker no projeto visa garantir que todos os componentes da aplicação funcionem de maneira consistente em diferentes ambientes, facilitando o deployment e a escalabilidade. A configuração envolve a criação de containers para o frontend, backend Golang, backend FastAPI e serviços auxiliares como o MongoDB.
 
 ### Dockerfiles
 
 Cada componente principal da aplicação possui seu próprio Dockerfile, responsável por definir o ambiente necessário para sua execução.
 
 1. **Frontend (`app/Dockerfile`):**
-   - **Imagem Base:** Utiliza `node:16-alpine` para um ambiente leve e eficiente.
+   - **Imagem Base:** Utiliza `node:18-alpine` para um ambiente leve e eficiente.
    - **Instalação de Dependências:** Copia `package.json` e `package-lock.json` e executa `npm install` para instalar as dependências.
    - **Build da Aplicação:** Compila a aplicação com `npm run build`.
    - **Execução:** Inicia o frontend com `npm start`, expondo a porta `3000`.
